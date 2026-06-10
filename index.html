@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>小猫的信</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:100vw;height:100vh;overflow:hidden;
+  background:linear-gradient(160deg,#ffc0cb 0%,#ffe4e9 40%,#ffd1dc 100%);
+  font-family:'Comic Sans MS','PingFang SC','Microsoft YaHei',cursive;
+  position:relative;
+}
+
+/* ===== 漂浮的爱心 ===== */
+.heart{
+  position:absolute;font-size:18px;opacity:.5;pointer-events:none;
+  animation:floatHeart linear infinite;
+}
+@keyframes floatHeart{
+  0%{transform:translateY(100vh) rotate(0);opacity:0}
+  10%{opacity:.6}
+  90%{opacity:.6}
+  100%{transform:translateY(-10vh) rotate(360deg);opacity:0}
+}
+
+/* ===== 小猫容器 ===== */
+#cat-wrap{
+  position:absolute;bottom:18%;left:50%;
+  transform:translateX(-50%);
+  cursor:pointer;z-index:10;
+  transition:opacity .5s;
+}
+
+/* ===== 小猫 SVG ===== */
+.cat{
+  width:160px;height:130px;
+  animation:breathe 2.5s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.02)}}
+
+/* 走路动画 */
+.walk-over{animation:walkOver 2.5s ease-out forwards!important}
+@keyframes walkOver{
+  0%{transform:translateX(-40vw) translateY(20px) scaleX(.8);opacity:0}
+  30%{opacity:1}
+  60%{transform:translateX(-5vw) translateY(0) scaleX(1)}
+  80%{transform:translateX(2vw)}
+  100%{transform:translateX(0) translateY(0) scaleX(1)}
+}
+
+/* 走路时的摇摆 */
+.walk-over .cat{animation:walkBob .3s ease-in-out infinite!important}
+@keyframes walkBob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+
+/* 等待点击时 */
+.waiting-cat{animation:catBounce 1.2s ease-in-out infinite!important}
+@keyframes catBounce{
+  0%,100%{transform:rotate(0) scale(1)}
+  25%{transform:rotate(-6deg) scale(1.05)}
+  75%{transform:rotate(6deg) scale(1.05)}
+}
+
+/* 闭上眼睛 */
+.eyes-open{display:block}
+.eyes-closed{display:none}
+.state-sleeping .eyes-open{display:none}
+.state-sleeping .eyes-closed{display:block}
+
+/* 尾巴摇动 */
+.state-sleeping .tail{animation:tailWag 3s ease-in-out infinite;transform-origin:140px 100px}
+@keyframes tailWag{0%,100%{transform:rotate(0)}50%{transform:rotate(15deg)}}
+
+/* 呼吸气泡 */
+.bubble{
+  position:absolute;top:-10px;right:20px;
+  width:24px;height:24px;
+  border:2px solid #fff;border-radius:50%;
+  animation:bubbleFloat 2.5s ease-in-out infinite;
+  opacity:.7;
+}
+.bubble:nth-child(2){width:16px;height:16px;right:5px;top:0;animation-delay:.8s}
+@keyframes bubbleFloat{0%,100%{transform:translateY(0);opacity:.7}50%{transform:translateY(-8px);opacity:1}}
+
+/* 提示文字 */
+.hint{
+  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
+  font-size:14px;color:#e91e8c;
+  white-space:nowrap;opacity:0;
+  animation:hintPop .5s ease-out forwards;
+  animation-delay:.5s;
+}
+@keyframes hintPop{0%{opacity:0;transform:translateX(-50%) translateY(10px)}100%{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* 猫叼着信封 */
+.envelope-in-mouth{
+  position:absolute;top:55px;left:70px;
+  width:45px;height:30px;
+  background:linear-gradient(135deg,#ff69b4,#ff1493);
+  border-radius:3px;
+  transform:rotate(-8deg);
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  display:none;
+}
+.envelope-in-mouth::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(135deg,#ff85c8,#ff69b4);
+  clip-path:polygon(0 0,50% 100%,100% 0);
+}
+.envelope-in-mouth::after{
+  content:'♥';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);font-size:10px;color:#fff;
+}
+.show-envelope-in-mouth .envelope-in-mouth{display:block}
+
+/* ===== 中间的大信封 ===== */
+#envelope-wrap{
+  position:absolute;bottom:25%;left:50%;
+  transform:translateX(-50%) scale(0);
+  z-index:20;opacity:0;
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+}
+#envelope-wrap.visible{transform:translateX(-50%) scale(1);opacity:1}
+
+#envelope{
+  width:220px;height:150px;
+  background:linear-gradient(145deg,#ffb6c1,#ff69b4,#ff1493);
+  border-radius:8px;
+  position:relative;
+  box-shadow:0 6px 25px rgba(255,20,147,.35);
+  cursor:pointer;
+  overflow:visible;
+}
+
+/* 信封翻盖 */
+.envelope-flap{
+  position:absolute;top:-2px;left:0;right:0;height:55%;
+  background:linear-gradient(180deg,#ff85c8,#ff69b4);
+  clip-path:polygon(0 0,50% 100%,100% 0);
+  z-index:3;
+  transition:transform .5s;
+  transform-origin:top center;
+}
+#envelope-wrap.opened .envelope-flap{
+  transform:rotateX(180deg);
+}
+
+/* 信封上的文字 */
+.envelope-text{
+  position:absolute;top:35%;left:50%;
+  transform:translate(-50%,-50%);
+  color:#fff;font-size:14px;
+  text-shadow:0 1px 3px rgba(0,0,0,.2);
+  z-index:2;text-align:center;
+  width:80%;
+}
+.envelope-text[contenteditable="true"]:focus{
+  outline:none;background:rgba(255,255,255,.2);
+  border-radius:4px;padding:4px;
+}
+
+/* 玫瑰装饰 */
+.rose{
+  position:absolute;font-size:22px;z-index:4;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));
+}
+.rose-tl{top:8px;left:12px}
+.rose-br{bottom:8px;right:12px}
+.rose-tr{top:8px;right:12px;font-size:16px}
+.rose-bl{bottom:8px;left:12px;font-size:16px}
+
+/* 火漆印章 */
+#wax-seal{
+  position:absolute;bottom:15px;left:50%;
+  transform:translateX(-50%);
+  width:50px;height:50px;
+  background:radial-gradient(circle at 35% 35%,#d4367a,#a0185e 50%,#7a1048);
+  border-radius:50%;
+  z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  color:#ffd700;font-size:22px;font-weight:bold;
+  box-shadow:0 3px 10px rgba(0,0,0,.3),inset 0 -2px 4px rgba(0,0,0,.3),inset 0 2px 4px rgba(255,255,255,.15);
+  cursor:pointer;
+  transition:transform .2s;
+  user-select:none;
+}
+#wax-seal:hover{transform:translateX(-50%) scale(1.1)}
+#wax-seal:active{transform:translateX(-50%) scale(.95)}
+#wax-seal::before{
+  content:'';position:absolute;inset:3px;
+  border:2px solid rgba(255,215,0,.4);border-radius:50%;
+}
+#envelope-wrap.opened #wax-seal{
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+
+/* ===== 信纸 ===== */
+#letter-wrap{
+  position:absolute;bottom:20%;left:50%;
+  transform:translateX(-50%);
+  z-index:25;
+  opacity:0;pointer-events:none;
+  transition:opacity .5s;
+}
+#letter-wrap.visible{opacity:1;pointer-events:auto}
+
+#letter{
+  width:260px;
+  background:linear-gradient(180deg,#fff9f0,#fff5ee,#fff9f0);
+  border-radius:6px;
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 1.2s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+#letter.expanded{max-height:70vh}
+
+/* 信纸展开动画 - 从上往下展开 */
+.letter-content-inner{
+  padding:30px 22px;
+  opacity:0;
+  transition:opacity .8s .5s;
+}
+#letter.expanded .letter-content-inner{opacity:1}
+
+/* 信纸横线 */
+.letter-content-inner::before{
+  content:'';position:absolute;
+  top:0;left:22px;right:22px;bottom:0;
+  background:repeating-linear-gradient(
+    transparent,transparent 27px,#f0d0e0 27px,#f0d0e0 28px
+  );
+  opacity:.4;pointer-events:none;
+}
+
+#letter-title{
+  font-size:18px;color:#d4367a;
+  text-align:center;margin-bottom:15px;
+  outline:none;
+}
+#letter-title:focus{border-bottom:2px dashed #ffb6c1}
+
+#letter-body{
+  font-size:15px;color:#5a3e4b;
+  line-height:28px;min-height:200px;
+  outline:none;word-break:break-word;
+}
+#letter-body:focus{background:rgba(255,182,193,.08);border-radius:4px;padding:4px}
+
+/* 关闭按钮 */
+.close-btn{
+  position:absolute;top:10px;right:14px;
+  font-size:20px;color:#d4367a;
+  cursor:pointer;z-index:30;
+  width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.8);
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  transition:transform .2s;
+  opacity:0;pointer-events:none;
+}
+#letter.expanded .close-btn{opacity:1;pointer-events:auto}
+.close-btn:hover{transform:scale(1.2)}
+
+/* 保存按钮 */
+.save-btn{
+  position:absolute;bottom:12px;right:16px;
+  font-size:12px;color:#fff;
+  background:linear-gradient(135deg,#ff69b4,#ff1493);
+  border:none;border-radius:20px;
+  padding:6px 16px;cursor:pointer;
+  z-index:30;
+  box-shadow:0 2px 8px rgba(255,20,147,.3);
+  opacity:0;pointer-events:none;
+  transition:opacity .5s .8s;
+}
+#letter.expanded .save-btn{opacity:1;pointer-events:auto}
+.save-btn:hover{transform:scale(1.05);box-shadow:0 3px 12px rgba(255,20,147,.5)}
+
+/* ===== 状态管理 ===== */
+#cat-wrap,#envelope-wrap,#letter-wrap{
+  pointer-events:none;
+}
+#cat-wrap.active,#cat-wrap.waiting{pointer-events:auto}
+#envelope-wrap.visible{pointer-events:auto}
+#letter-wrap.visible .save-btn,
+#letter-wrap.visible .close-btn{pointer-events:auto}
+
+/* ===== 花瓣飘落 ===== */
+.petal{
+  position:absolute;pointer-events:none;
+  width:12px;height:10px;
+  background:radial-gradient(ellipse,#ffb6c1,#ff69b4);
+  border-radius:50% 0 50% 0;
+  opacity:.6;
+  animation:petalFall linear infinite;
+}
+@keyframes petalFall{
+  0%{transform:translateY(-20px) rotate(0) translateX(0);opacity:0}
+  10%{opacity:.7}
+  90%{opacity:.7}
+  100%{transform:translateY(100vh) rotate(720deg) translateX(30px);opacity:0}
+}
+
+/* 星星装饰 */
+.sparkle{
+  position:absolute;pointer-events:none;
+  width:4px;height:4px;background:#fff;
+  border-radius:50%;
+  animation:sparkle 2s ease-in-out infinite;
+}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+
+</style>
+</head>
+<body>
+
+<!-- 装饰元素 -->
+<div id="decorations"></div>
+
+<!-- 小猫 -->
+<div id="cat-wrap" class="state-sleeping">
+  <div class="cat">
+    <!-- SVG 布偶猫 -->
+    <svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg">
+      <!-- 尾巴 -->
+      <g class="tail">
+        <path d="M130,95 Q150,85 148,65 Q146,50 138,55" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" filter="url(#furShadow)"/>
+      </g>
+
+      <!-- 身体 -->
+      <ellipse cx="80" cy="90" rx="50" ry="30" fill="#fff" filter="url(#furShadow)"/>
+      <!-- 身体上的浅色斑纹 -->
+      <ellipse cx="75" cy="88" rx="35" ry="22" fill="#faf5f5" opacity=".5"/>
+
+      <!-- 前爪 (睡觉时收起) -->
+      <ellipse cx="55" cy="110" rx="12" ry="6" fill="#fff"/>
+      <ellipse cx="95" cy="110" rx="12" ry="6" fill="#fff"/>
+      <!-- 爪垫 -->
+      <ellipse cx="55" cy="109" rx="8" ry="3" fill="#ffb6c1" opacity=".6"/>
+      <ellipse cx="95" cy="109" rx="8" ry="3" fill="#ffb6c1" opacity=".6"/>
+
+      <!-- 头部 -->
+      <circle cx="80" cy="50" r="32" fill="#fff" filter="url(#furShadow)"/>
+
+      <!-- 耳朵 -->
+      <polygon points="52,32 44,8 62,28" fill="#fff"/>
+      <polygon points="53,30 47,13 60,27" fill="#ffb6c1" opacity=".5"/>
+      <polygon points="108,32 116,8 98,28" fill="#fff"/>
+      <polygon points="107,30 113,13 100,27" fill="#ffb6c1" opacity=".5"/>
+
+      <!-- 耳朵毛 -->
+      <ellipse cx="50" cy="18" rx="6" ry="3" fill="#fff" opacity=".7"/>
+      <ellipse cx="110" cy="18" rx="6" ry="3" fill="#fff" opacity=".7"/>
+
+      <!-- 脸部斑纹 (布偶猫特征) -->
+      <ellipse cx="80" cy="55" rx="18" ry="15" fill="#faf5f5" opacity=".4"/>
+
+      <!-- 眼睛 (睁开) -->
+      <g class="eyes-open">
+        <ellipse cx="67" cy="48" rx="7" ry="8" fill="#4a90d9"/>
+        <ellipse cx="93" cy="48" rx="7" ry="8" fill="#4a90d9"/>
+        <ellipse cx="67" cy="48" rx="5" ry="6" fill="#5ba3ec"/>
+        <ellipse cx="93" cy="48" rx="5" ry="6" fill="#5ba3ec"/>
+        <circle cx="65" cy="46" r="2.5" fill="#fff" opacity=".9"/>
+        <circle cx="91" cy="46" r="2.5" fill="#fff" opacity=".9"/>
+        <circle cx="69" cy="50" r="1" fill="#fff" opacity=".6"/>
+        <circle cx="95" cy="50" r="1" fill="#fff" opacity=".6"/>
+        <!-- 瞳孔 -->
+        <ellipse cx="67" cy="48" rx="3" ry="4" fill="#2c5f8a" opacity=".7"/>
+        <ellipse cx="93" cy="48" rx="3" ry="4" fill="#2c5f8a" opacity=".7"/>
+      </g>
+
+      <!-- 眼睛 (闭上 - 睡觉) -->
+      <g class="eyes-closed">
+        <path d="M60,48 Q67,52 74,48" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M86,48 Q93,52 100,48" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- 鼻子 -->
+      <ellipse cx="80" cy="55" rx="3" ry="2" fill="#ffb6c1"/>
+
+      <!-- 嘴巴 (微笑) -->
+      <path d="M75,58 Q80,62 85,58" fill="none" stroke="#c08080" stroke-width="1" stroke-linecap="round"/>
+
+      <!-- 胡须 -->
+      <line x1="55" y1="52" x2="38" y2="48" stroke="#ddd" stroke-width=".8"/>
+      <line x1="55" y1="56" x2="36" y2="58" stroke="#ddd" stroke-width=".8"/>
+      <line x1="105" y1="52" x2="122" y2="48" stroke="#ddd" stroke-width=".8"/>
+      <line x1="105" y1="56" x2="124" y2="58" stroke="#ddd" stroke-width=".8"/>
+
+      <!-- 腮红 -->
+      <ellipse cx="58" cy="57" rx="6" ry="4" fill="#ffb6c1" opacity=".35"/>
+      <ellipse cx="102" cy="57" rx="6" ry="4" fill="#ffb6c1" opacity=".35"/>
+
+      <!-- 信封 (叼在嘴里) -->
+      <g class="envelope-in-mouth">
+        <rect x="0" y="0" width="40" height="26" rx="2" fill="url(#envGrad)"/>
+        <polygon points="0,0 20,14 40,0" fill="#ff85c8" opacity=".8"/>
+        <text x="20" y="17" text-anchor="middle" font-size="10" fill="#fff">♥</text>
+      </g>
+    </svg>
+
+    <!-- 睡觉呼吸气泡 -->
+    <div class="bubble" style="display:none"></div>
+    <div class="bubble" style="display:none"></div>
+
+    <!-- 提示文字 -->
+    <div class="hint" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 大信封 -->
+<div id="envelope-wrap">
+  <div id="envelope">
+    <div class="envelope-flap"></div>
+    <span class="rose rose-tl">🌹</span>
+    <span class="rose rose-br">🌹</span>
+    <span class="rose rose-tr">✿</span>
+    <span class="rose rose-bl">✿</span>
+    <div class="envelope-text" id="envelope-text">给最特别的你</div>
+    <div id="wax-seal">福</div>
+  </div>
+</div>
+
+<!-- 信纸 -->
+<div id="letter-wrap">
+  <div id="letter">
+    <div class="close-btn" id="close-btn">×</div>
+    <div class="letter-content-inner">
+      <div id="letter-title" contenteditable="true">给最特别的你</div>
+      <div id="letter-body" contenteditable="true"></div>
+    </div>
+    <button class="save-btn" id="save-btn">保存 ♥</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ===== 状态 =====
+  const SLEEPING='sleeping',WALKING='walking',WAITING='waiting',
+        ENVELOPE_DOWN='envelope_down',LETTER_OPEN='letter_open';
+  let state=SLEEPING;
+
+  // ===== DOM =====
+  const catWrap=document.getElementById('cat-wrap');
+  const envelopeWrap=document.getElementById('envelope-wrap');
+  const envelopeText=document.getElementById('envelope-text');
+  const waxSeal=document.getElementById('wax-seal');
+  const letterWrap=document.getElementById('letter-wrap');
+  const letter=document.getElementById('letter');
+  const letterTitle=document.getElementById('letter-title');
+  const letterBody=document.getElementById('letter-body');
+  const saveBtn=document.getElementById('save-btn');
+  const closeBtn=document.getElementById('close-btn');
+
+  // ===== localStorage =====
+  function loadData(){
+    try{
+      const d=JSON.parse(localStorage.getItem('catLetter')||'{}');
+      if(d.et)envelopeText.textContent=d.et;
+      if(d.lt)letterTitle.textContent=d.lt;
+      if(d.lb)letterBody.innerHTML=d.lb;
+    }catch(e){}
+  }
+  function saveData(){
+    localStorage.setItem('catLetter',JSON.stringify({
+      et:envelopeText.textContent,
+      lt:letterTitle.textContent,
+      lb:letterBody.innerHTML
+    }));
+    // 保存动画反馈
+    saveBtn.textContent='已保存 ✓';
+    setTimeout(()=>{saveBtn.textContent='保存 ♥'},1500);
+  }
+
+  // ===== 装饰 =====
+  function createDecor(){
+    const decor=document.getElementById('decorations');
+    // 花瓣
+    for(let i=0;i<12;i++){
+      const p=document.createElement('div');
+      p.className='petal';
+      p.style.left=Math.random()*100+'%';
+      p.style.animationDuration=(6+Math.random()*8)+'s';
+      p.style.animationDelay=Math.random()*8+'s';
+      p.style.width=(8+Math.random()*8)+'px';
+      p.style.height=(6+Math.random()*6)+'px';
+      decor.appendChild(p);
+    }
+    // 星星
+    for(let i=0;i<8;i++){
+      const s=document.createElement('div');
+      s.className='sparkle';
+      s.style.left=Math.random()*100+'%';
+      s.style.top=Math.random()*100+'%';
+      s.style.animationDelay=Math.random()*3+'s';
+      decor.appendChild(s);
+    }
+  }
+
+  // ===== 流程控制 =====
+
+  // 3秒后猫开始走过来
+  function startWalk(){
+    state=WALKING;
+    catWrap.className='walk-over show-envelope-in-mouth';
+    catWrap.style.opacity='1';
+    // 显示气泡
+    const bubbles=catWrap.querySelectorAll('.bubble');
+    bubbles.forEach(b=>b.style.display='block');
+
+    // 走路动画结束
+    setTimeout(()=>{
+      state=WAITING;
+      catWrap.className='waiting-cat';
+      const hint=catWrap.querySelector('.hint');
+      hint.textContent='💕 点击小猫 💕';
+      hint.style.display='block';
+      // 隐藏气泡
+      bubbles.forEach(b=>b.style.display='none');
+    },2800);
+  }
+
+  // 点击猫
+  function clickCat(){
+    if(state!==WAITING)return;
+    state=ENVELOPE_DOWN;
+
+    // 猫走开
+    catWrap.style.transition='transform 1s ease-in,opacity 1s ease-in';
+    catWrap.style.transform='translateX(-50%) translateY(-30px)';
+    catWrap.style.opacity='0';
+
+    // 显示大信封
+    setTimeout(()=>{
+      catWrap.style.display='none';
+      envelopeWrap.className='visible';
+    },800);
+  }
+
+  // 点击火漆印章
+  function clickSeal(e){
+    e.stopPropagation();
+    if(state!==ENVELOPE_DOWN)return;
+    state=LETTER_OPEN;
+
+    // 信封打开动画
+    envelopeWrap.className='visible opened';
+
+    // 显示信纸
+    setTimeout(()=>{
+      envelopeWrap.style.opacity='0';
+      envelopeWrap.style.pointerEvents='none';
+      letterWrap.className='visible';
+      setTimeout(()=>{
+        letter.className='expanded';
+      },100);
+    },800);
+  }
+
+  // 关闭信
+  function closeLetter(){
+    letter.className='';
+    setTimeout(()=>{
+      letterWrap.className='';
+      envelopeWrap.style.opacity='1';
+      envelopeWrap.style.pointerEvents='auto';
+      envelopeWrap.className='visible';
+      state=ENVELOPE_DOWN;
+    },500);
+  }
+
+  // ===== 事件绑定 =====
+  catWrap.addEventListener('click',clickCat);
+  waxSeal.addEventListener('click',clickSeal);
+  closeBtn.addEventListener('click',closeLetter);
+  saveBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    saveData();
+  });
+
+  // 信封文字编辑后自动保存
+  envelopeText.addEventListener('blur',function(){
+    try{
+      const d=JSON.parse(localStorage.getItem('catLetter')||'{}');
+      d.et=envelopeText.textContent;
+      localStorage.setItem('catLetter',JSON.stringify(d));
+    }catch(e){}
+  });
+
+  // ===== 启动 =====
+  loadData();
+  createDecor();
+  setTimeout(startWalk,1500);
+
+})();
+</script>
+</body>
+</html>
