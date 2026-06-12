@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>小猫的信</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -11,593 +11,1042 @@ body{
   background:linear-gradient(160deg,#ffc0cb 0%,#ffe4e9 40%,#ffd1dc 100%);
   font-family:'Comic Sans MS','PingFang SC','Microsoft YaHei',cursive;
   position:relative;
+  transition:background 1s;
 }
 
-/* ===== 漂浮的爱心 ===== */
+/* 漂浮爱心 */
 .heart{
-  position:absolute;font-size:18px;opacity:.5;pointer-events:none;
+  position:absolute;font-size:24px;opacity:.45;pointer-events:none;
   animation:floatHeart linear infinite;
 }
 @keyframes floatHeart{
   0%{transform:translateY(100vh) rotate(0);opacity:0}
-  10%{opacity:.6}
-  90%{opacity:.6}
+  10%{opacity:.55}
+  90%{opacity:.55}
   100%{transform:translateY(-10vh) rotate(360deg);opacity:0}
 }
 
-/* ===== 小猫容器 ===== */
-#cat-wrap{
-  position:absolute;bottom:18%;left:50%;
+/* ===== 单猫爪 ===== */
+#single-paw{
+  position:absolute;bottom:28%;left:50%;
   transform:translateX(-50%);
   cursor:pointer;z-index:10;
-  transition:opacity .5s;
+  width:110px;height:130px;
+  animation:pawWave 2s ease-in-out infinite;
 }
-
-/* ===== 小猫 SVG ===== */
-.cat{
-  width:160px;height:130px;
-  animation:breathe 2.5s ease-in-out infinite;
+@keyframes pawWave{
+  0%,100%{transform:translateX(-50%) rotate(-5deg)}
+  50%{transform:translateX(-50%) rotate(5deg)}
 }
-@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.02)}}
+#single-paw:active{transform:translateX(-50%) scale(.95) rotate(0)}
 
-/* 走路动画 */
-.walk-over{animation:walkOver 2.5s ease-out forwards!important}
-@keyframes walkOver{
-  0%{transform:translateX(-40vw) translateY(20px) scaleX(.8);opacity:0}
-  30%{opacity:1}
-  60%{transform:translateX(-5vw) translateY(0) scaleX(1)}
-  80%{transform:translateX(2vw)}
-  100%{transform:translateX(0) translateY(0) scaleX(1)}
+.paw{
+  width:110px;height:100px;
+  position:relative;
+  background:linear-gradient(145deg,#f8d5be,#f0b89a);
+  border-radius:50% 50% 45% 45%;
+  box-shadow:0 8px 25px rgba(0,0,0,.12),inset 0 -4px 8px rgba(0,0,0,.06);
 }
-
-/* 走路时的摇摆 */
-.walk-over .cat{animation:walkBob .3s ease-in-out infinite!important}
-@keyframes walkBob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-
-/* 等待点击时 */
-.waiting-cat{animation:catBounce 1.2s ease-in-out infinite!important}
-@keyframes catBounce{
-  0%,100%{transform:rotate(0) scale(1)}
-  25%{transform:rotate(-6deg) scale(1.05)}
-  75%{transform:rotate(6deg) scale(1.05)}
+.paw::before{
+  content:'';position:absolute;
+  top:22px;left:50%;transform:translateX(-50%);
+  width:42px;height:34px;
+  background:linear-gradient(145deg,#e8a888,#ddb89a);
+  border-radius:50%;
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.3);
 }
-
-/* 闭上眼睛 */
-.eyes-open{display:block}
-.eyes-closed{display:none}
-.state-sleeping .eyes-open{display:none}
-.state-sleeping .eyes-closed{display:block}
-
-/* 尾巴摇动 */
-.state-sleeping .tail{animation:tailWag 3s ease-in-out infinite;transform-origin:140px 100px}
-@keyframes tailWag{0%,100%{transform:rotate(0)}50%{transform:rotate(15deg)}}
-
-/* 呼吸气泡 */
-.bubble{
-  position:absolute;top:-10px;right:20px;
-  width:24px;height:24px;
-  border:2px solid #fff;border-radius:50%;
-  animation:bubbleFloat 2.5s ease-in-out infinite;
-  opacity:.7;
+.paw .toe{
+  position:absolute;
+  width:24px;height:28px;
+  background:linear-gradient(145deg,#e8a888,#ddb89a);
+  border-radius:50%;
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.25);
 }
-.bubble:nth-child(2){width:16px;height:16px;right:5px;top:0;animation-delay:.8s}
-@keyframes bubbleFloat{0%,100%{transform:translateY(0);opacity:.7}50%{transform:translateY(-8px);opacity:1}}
+.paw .toe:nth-child(1){top:4px;left:12px}
+.paw .toe:nth-child(2){top:-2px;left:38px}
+.paw .toe:nth-child(3){top:2px;left:64px}
 
-/* 提示文字 */
-.hint{
-  position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);
-  font-size:14px;color:#e91e8c;
-  white-space:nowrap;opacity:0;
+.hint-text{
+  position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);
+  font-size:18px;color:#e91e8c;white-space:nowrap;
   animation:hintPop .5s ease-out forwards;
-  animation-delay:.5s;
+  text-shadow:0 1px 3px rgba(0,0,0,.1);
 }
-@keyframes hintPop{0%{opacity:0;transform:translateX(-50%) translateY(10px)}100%{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes hintPop{0%{opacity:0;transform:translateX(-50%) translateY(12px)}100%{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-/* 猫叼着信封 */
-.envelope-in-mouth{
-  position:absolute;top:55px;left:70px;
-  width:45px;height:30px;
-  background:linear-gradient(135deg,#ff69b4,#ff1493);
-  border-radius:3px;
-  transform:rotate(-8deg);
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
-  display:none;
+/* ===== 双猫爪 ===== */
+#paws-envelope{
+  position:absolute;bottom:18%;left:50%;
+  transform:translateX(-50%);
+  display:none;z-index:20;
 }
-.envelope-in-mouth::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:50%;
-  background:linear-gradient(135deg,#ff85c8,#ff69b4);
-  clip-path:polygon(0 0,50% 100%,100% 0);
+#paws-envelope.show{display:flex;align-items:flex-end;gap:0;animation:riseUp 1.2s ease-out forwards}
+@keyframes riseUp{
+  0%{transform:translateX(-50%) translateY(100vh);opacity:0}
+  50%{opacity:1}
+  100%{transform:translateX(-50%) translateY(0);opacity:1}
 }
-.envelope-in-mouth::after{
-  content:'♥';position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);font-size:10px;color:#fff;
-}
-.show-envelope-in-mouth .envelope-in-mouth{display:block}
 
-/* ===== 中间的大信封 ===== */
+.paw-left,.paw-right{
+  width:90px;height:78px;
+  position:relative;
+  background:linear-gradient(145deg,#f8d5be,#f0b89a);
+  border-radius:50% 50% 45% 45%;
+  box-shadow:0 6px 20px rgba(0,0,0,.1),inset 0 -3px 6px rgba(0,0,0,.05);
+  flex-shrink:0;
+}
+.paw-left{transform:rotate(-16deg);margin-right:-10px;z-index:1}
+.paw-right{transform:rotate(16deg);margin-left:-10px;z-index:1}
+
+.paw-left::before,.paw-right::before{
+  content:'';position:absolute;
+  top:18px;left:50%;transform:translateX(-50%);
+  width:34px;height:28px;
+  background:linear-gradient(145deg,#e8a888,#ddb89a);
+  border-radius:50%;
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.3);
+}
+.paw-left .toe,.paw-right .toe{
+  position:absolute;
+  width:20px;height:24px;
+  background:linear-gradient(145deg,#e8a888,#ddb89a);
+  border-radius:50%;
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.25);
+}
+.paw-left .toe:nth-child(1){top:2px;left:6px}
+.paw-left .toe:nth-child(2){top:-4px;left:24px}
+.paw-left .toe:nth-child(3){top:0px;left:44px}
+.paw-right .toe:nth-child(1){top:2px;left:6px}
+.paw-right .toe:nth-child(2){top:-4px;left:24px}
+.paw-right .toe:nth-child(3){top:0px;left:44px}
+
+/* ===== 信封 — 樱花白 ===== */
 #envelope-wrap{
-  position:absolute;bottom:25%;left:50%;
-  transform:translateX(-50%) scale(0);
-  z-index:20;opacity:0;
-  transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  position:relative;z-index:2;
+  cursor:pointer;
+  transition:transform .3s;
+  filter:drop-shadow(0 8px 20px rgba(0,0,0,.12));
 }
-#envelope-wrap.visible{transform:translateX(-50%) scale(1);opacity:1}
+#envelope-wrap:hover{transform:scale(1.06)}
 
 #envelope{
-  width:220px;height:150px;
-  background:linear-gradient(145deg,#ffb6c1,#ff69b4,#ff1493);
-  border-radius:8px;
-  position:relative;
-  box-shadow:0 6px 25px rgba(255,20,147,.35);
-  cursor:pointer;
+  width:240px;height:165px;
+  /* 樱花白底色 */
+  background:
+    radial-gradient(circle at 0 0, transparent 18px, #f0c0d0 18px, #f0c0d0 20px, transparent 20px),
+    radial-gradient(circle at 100% 0, transparent 18px, #f0c0d0 18px, #f0c0d0 20px, transparent 20px),
+    radial-gradient(circle at 0 100%, transparent 18px, #f0c0d0 18px, #f0c0d0 20px, transparent 20px),
+    radial-gradient(circle at 100% 100%, transparent 18px, #f0c0d0 18px, #f0c0d0 20px, transparent 20px),
+    /* 樱花小花瓣图案 */
+    radial-gradient(circle at 20% 30%, rgba(255,180,200,.12) 0%, transparent 8%),
+    radial-gradient(circle at 75% 25%, rgba(255,180,200,.1) 0%, transparent 6%),
+    radial-gradient(circle at 85% 70%, rgba(255,180,200,.08) 0%, transparent 7%),
+    radial-gradient(circle at 15% 75%, rgba(255,180,200,.1) 0%, transparent 6%),
+    radial-gradient(circle at 50% 50%, rgba(255,180,200,.06) 0%, transparent 10%),
+    /* 细边框 */
+    linear-gradient(#e8c0d0,#e8c0d0),
+    linear-gradient(#e8c0d0,#e8c0d0),
+    linear-gradient(#e8c0d0,#e8c0d0),
+    linear-gradient(#e8c0d0,#e8c0d0),
+    /* 主背景 — 樱花白 */
+    linear-gradient(145deg,#fff5f7 0%,#fff0f3 30%,#fce8ed 100%);
+  background-size:100% 100%,100% 100%,100% 100%,100% 100%,
+    100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,
+    1px 100%,1px 100%,100% 1px,100% 1px,100% 100%;
+  background-position:0 0,0 0,0 0,0 0,
+    0 0,0 0,0 0,0 0,0 0,
+    12px 0,calc(100% - 12px) 0,0 12px,0 calc(100% - 12px),0 0;
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,
+    no-repeat,no-repeat,no-repeat,no-repeat,no-repeat,
+    no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
+  border-radius:10px;position:relative;
+  box-shadow:0 10px 40px rgba(200,100,120,.15),0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);
   overflow:visible;
 }
+#envelope::before{
+  content:'';position:absolute;inset:12px;
+  background-image:
+    repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(240,180,200,.04) 8px,rgba(240,180,200,.04) 9px),
+    repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(240,180,200,.04) 8px,rgba(240,180,200,.04) 9px);
+  border-radius:4px;pointer-events:none;z-index:1;
+}
 
-/* 信封翻盖 */
 .envelope-flap{
-  position:absolute;top:-2px;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,#ff85c8,#ff69b4);
+  position:absolute;top:0;left:0;right:0;height:55%;
+  background:linear-gradient(180deg,#fff0f3,#fce8ed 60%,#f8dce4);
   clip-path:polygon(0 0,50% 100%,100% 0);
-  z-index:3;
-  transition:transform .5s;
-  transform-origin:top center;
+  z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.04);
 }
-#envelope-wrap.opened .envelope-flap{
-  transform:rotateX(180deg);
+/* 翻盖上的樱花小图案 */
+.envelope-flap::before{
+  content:'🌸';position:absolute;
+  top:30%;left:50%;transform:translateX(-50%);
+  font-size:22px;opacity:.35;
+  filter:grayscale(.2);
 }
 
-/* 信封上的文字 */
 .envelope-text{
-  position:absolute;top:35%;left:50%;
+  position:absolute;top:38%;left:50%;
   transform:translate(-50%,-50%);
-  color:#fff;font-size:14px;
-  text-shadow:0 1px 3px rgba(0,0,0,.2);
-  z-index:2;text-align:center;
-  width:80%;
+  color:#d4608a;font-size:17px;font-weight:700;
+  letter-spacing:2px;
+  text-shadow:0 1px 2px rgba(255,255,255,.8);
+  z-index:4;text-align:center;width:75%;
+  outline:none;font-family:'Georgia','STSong','SimSun',serif;
 }
-.envelope-text[contenteditable="true"]:focus{
-  outline:none;background:rgba(255,255,255,.2);
-  border-radius:4px;padding:4px;
+.envelope-text:focus{background:rgba(240,180,200,.15);border-radius:4px;padding:4px}
+
+.corner-deco{position:absolute;width:30px;height:30px;z-index:4;color:#e8a0b8;font-size:16px;opacity:.6}
+.corner-tl{top:16px;left:16px}
+.corner-tr{top:16px;right:16px;transform:scaleX(-1)}
+.corner-bl{bottom:16px;left:16px;transform:scaleY(-1)}
+.corner-br{bottom:16px;right:16px;transform:scale(-1)}
+
+.envelope-bottom-deco{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,#e8a0b8,#f0c0d0,#e8a0b8,transparent);
+  z-index:2;
 }
 
-/* 玫瑰装饰 */
-.rose{
-  position:absolute;font-size:22px;z-index:4;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));
-}
-.rose-tl{top:8px;left:12px}
-.rose-br{bottom:8px;right:12px}
-.rose-tr{top:8px;right:12px;font-size:16px}
-.rose-bl{bottom:8px;left:12px;font-size:16px}
-
-/* 火漆印章 */
+/* 火漆印章 — 扁平一体感 */
 #wax-seal{
-  position:absolute;bottom:15px;left:50%;
+  position:absolute;top:62%;left:50%;
   transform:translateX(-50%);
-  width:50px;height:50px;
-  background:radial-gradient(circle at 35% 35%,#d4367a,#a0185e 50%,#7a1048);
-  border-radius:50%;
-  z-index:5;
-  display:flex;align-items:center;justify-content:center;
-  color:#ffd700;font-size:22px;font-weight:bold;
-  box-shadow:0 3px 10px rgba(0,0,0,.3),inset 0 -2px 4px rgba(0,0,0,.3),inset 0 2px 4px rgba(255,255,255,.15);
-  cursor:pointer;
-  transition:transform .2s;
+  width:56px;height:56px;
+  background:#d42050;
+  border-radius:50%;z-index:10;
+  cursor:pointer;transition:transform .25s,opacity .3s;
   user-select:none;
+  opacity:0;pointer-events:none;
 }
-#wax-seal:hover{transform:translateX(-50%) scale(1.1)}
+#wax-seal:hover{transform:translateX(-50%) scale(1.08)}
 #wax-seal:active{transform:translateX(-50%) scale(.95)}
-#wax-seal::before{
-  content:'';position:absolute;inset:3px;
-  border:2px solid rgba(255,215,0,.4);border-radius:50%;
+
+/* 信封放大后显示火漆 */
+#envelope-wrap.standing #wax-seal{
+  opacity:1;pointer-events:auto;
+  width:40px;height:40px;
 }
-#envelope-wrap.opened #wax-seal{
-  opacity:0;pointer-events:none;transition:opacity .3s;
+
+/* 信封立起来 — 放大3倍+上移 */
+#envelope-wrap.standing{
+  position:fixed;top:38%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:100;
+  animation:envelopeUp .8s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes envelopeUp{
+  0%{transform:translate(-50%,-30%) scale(.35) rotate(8deg);opacity:0}
+  100%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}
+}
+#envelope-wrap.standing #envelope{
+  width:360px;height:248px;
+  max-width:90vw;
+  max-height:90vh;
+}
+/* 立起来后文字放大 */
+#envelope-wrap.standing .envelope-text{font-size:28px}
+#envelope-wrap.standing .corner-deco{font-size:28px;width:38px;height:38px}
+
+/* ===== 图片爆发动画 — 从信封开口爆发，多张铺满屏幕 ===== */
+.photo-burst{
+  position:fixed;
+  width:35vw;height:35vw;
+  max-width:280px;max-height:280px;
+  min-width:120px;min-height:120px;
+  object-fit:cover;
+  border-radius:12px;
+  z-index:250;
+  pointer-events:none;
+  opacity:0;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);
+  animation:burstScatter 1.2s cubic-bezier(.25,.9,.3,1) forwards;
+}
+@keyframes burstScatter{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(0)}
+  20%{opacity:1}
+  100%{opacity:1;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1) rotate(var(--rot))}
 }
 
 /* ===== 信纸 ===== */
 #letter-wrap{
-  position:absolute;bottom:20%;left:50%;
-  transform:translateX(-50%);
-  z-index:25;
-  opacity:0;pointer-events:none;
-  transition:opacity .5s;
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:110;
+  display:none;
+  width:92vw;max-width:440px;
 }
-#letter-wrap.visible{opacity:1;pointer-events:auto}
+#letter-wrap.show{display:block;animation:letterOpen .8s ease-out forwards}
+@keyframes letterOpen{
+  0%{transform:translate(-50%,-50%) scale(0) rotate(10deg);opacity:0}
+  100%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}
+}
 
 #letter{
-  width:260px;
   background:linear-gradient(180deg,#fff9f0,#fff5ee,#fff9f0);
-  border-radius:6px;
-  box-shadow:0 4px 20px rgba(0,0,0,.12);
+  border-radius:8px;
+  box-shadow:0 8px 35px rgba(0,0,0,.15);
   overflow:hidden;
-  max-height:0;
-  transition:max-height 1.2s cubic-bezier(.4,0,.2,1);
+  max-height:82vh;
+  display:flex;flex-direction:column;
   position:relative;
 }
-#letter.expanded{max-height:70vh}
 
-/* 信纸展开动画 - 从上往下展开 */
-.letter-content-inner{
-  padding:30px 22px;
-  opacity:0;
-  transition:opacity .8s .5s;
-}
-#letter.expanded .letter-content-inner{opacity:1}
-
-/* 信纸横线 */
-.letter-content-inner::before{
-  content:'';position:absolute;
-  top:0;left:22px;right:22px;bottom:0;
-  background:repeating-linear-gradient(
-    transparent,transparent 27px,#f0d0e0 27px,#f0d0e0 28px
-  );
-  opacity:.4;pointer-events:none;
+/* ===== 麻绳风铃区 ===== */
+.wind-chimes{
+  position:relative;
+  padding:0 10px 10px;
+  min-height:130px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  overflow:visible;
+  background:linear-gradient(180deg,rgba(232,197,168,.08),transparent 70%);
+  z-index:2;
+  flex-shrink:0;
 }
 
-#letter-title{
-  font-size:18px;color:#d4367a;
-  text-align:center;margin-bottom:15px;
-  outline:none;
-}
-#letter-title:focus{border-bottom:2px dashed #ffb6c1}
-
-#letter-body{
-  font-size:15px;color:#5a3e4b;
-  line-height:28px;min-height:200px;
-  outline:none;word-break:break-word;
-}
-#letter-body:focus{background:rgba(255,182,193,.08);border-radius:4px;padding:4px}
-
-/* 关闭按钮 */
-.close-btn{
-  position:absolute;top:10px;right:14px;
-  font-size:20px;color:#d4367a;
-  cursor:pointer;z-index:30;
-  width:28px;height:28px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:50%;
-  background:rgba(255,255,255,.8);
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-  transition:transform .2s;
-  opacity:0;pointer-events:none;
-}
-#letter.expanded .close-btn{opacity:1;pointer-events:auto}
-.close-btn:hover{transform:scale(1.2)}
-
-/* 保存按钮 */
-.save-btn{
-  position:absolute;bottom:12px;right:16px;
-  font-size:12px;color:#fff;
-  background:linear-gradient(135deg,#ff69b4,#ff1493);
-  border:none;border-radius:20px;
-  padding:6px 16px;cursor:pointer;
-  z-index:30;
-  box-shadow:0 2px 8px rgba(255,20,147,.3);
-  opacity:0;pointer-events:none;
-  transition:opacity .5s .8s;
-}
-#letter.expanded .save-btn{opacity:1;pointer-events:auto}
-.save-btn:hover{transform:scale(1.05);box-shadow:0 3px 12px rgba(255,20,147,.5)}
-
-/* ===== 状态管理 ===== */
-#cat-wrap,#envelope-wrap,#letter-wrap{
+/* 麻绳 — 有弧度 */
+.rope{
+  position:absolute;
+  top:12px;left:15px;right:15px;
+  height:20px;
   pointer-events:none;
 }
-#cat-wrap.active,#cat-wrap.waiting{pointer-events:auto}
-#envelope-wrap.visible{pointer-events:auto}
-#letter-wrap.visible .save-btn,
-#letter-wrap.visible .close-btn{pointer-events:auto}
-
-/* ===== 花瓣飘落 ===== */
-.petal{
-  position:absolute;pointer-events:none;
-  width:12px;height:10px;
-  background:radial-gradient(ellipse,#ffb6c1,#ff69b4);
-  border-radius:50% 0 50% 0;
-  opacity:.6;
-  animation:petalFall linear infinite;
+.rope svg{
+  width:100%;height:100%;
 }
-@keyframes petalFall{
-  0%{transform:translateY(-20px) rotate(0) translateX(0);opacity:0}
-  10%{opacity:.7}
-  90%{opacity:.7}
-  100%{transform:translateY(100vh) rotate(720deg) translateX(30px);opacity:0}
+.rope path{
+  fill:none;
+  stroke:#a08060;
+  stroke-width:3;
+  stroke-linecap:round;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));
+}
+/* 麻绳纹理 */
+.rope path.rope-texture{
+  stroke:#c8a882;
+  stroke-width:1.5;
+  opacity:.5;
 }
 
-/* 星星装饰 */
-.sparkle{
-  position:absolute;pointer-events:none;
-  width:4px;height:4px;background:#fff;
+/* 照片挂饰 */
+.chime-item{
+  position:absolute;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  cursor:pointer;
+  transition:transform .2s;
+  animation:chimeSway 3.5s ease-in-out infinite;
+  z-index:2;
+}
+.chime-item:hover{transform:scale(1.12) rotate(0)!important}
+.chime-item:active{transform:scale(.93)!important}
+
+@keyframes chimeSway{
+  0%,100%{transform:rotate(-3deg)}
+  50%{transform:rotate(3deg)}
+}
+
+.chime-line{
+  width:1.5px;
+  height:22px;
+  background:linear-gradient(180deg,#a08060,#c8a882);
+  border-radius:1px;
+}
+
+.chime-clip{
+  width:18px;height:10px;
+  background:linear-gradient(145deg,#d4a574,#c8506e);
+  border-radius:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,.2);
+}
+
+.chime-photo{
+  width:72px;height:72px;
+  border-radius:8px;
+  object-fit:cover;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);
+  border:3px solid #fff;
+  margin-top:2px;
+  background:#f5f0eb;
+}
+
+/* 页码指示 */
+.page-indicator{
+  text-align:center;
+  padding:6px 0 4px;
+  display:flex;
+  justify-content:center;
+  gap:6px;
+}
+.page-dot{
+  width:7px;height:7px;
   border-radius:50%;
-  animation:sparkle 2s ease-in-out infinite;
+  background:#ddd;
+  transition:all .3s;
 }
-@keyframes sparkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+.page-dot.active{background:#c8506e;transform:scale(1.3)}
 
+.chime-hint{
+  text-align:center;
+  font-size:11px;
+  color:#c8506e;
+  padding:0 0 6px;
+  opacity:.6;
+}
+
+/* 没有照片 */
+.no-photos-hint{
+  text-align:center;
+  padding:20px;
+  color:#c8506e;
+  font-size:14px;
+  cursor:pointer;
+  opacity:.7;
+  width:100%;
+}
+.no-photos-hint:hover{opacity:1}
+
+/* 信纸内容 */
+.letter-header{
+  padding:16px 25px 10px;
+  text-align:center;
+}
+#letter-title{
+  font-size:22px;color:#8b4513;
+  outline:none;font-family:'Georgia','STSong',serif;
+  letter-spacing:2px;
+}
+#letter-title:focus{border-bottom:2px dashed #d4a574}
+
+.letter-content{
+  padding:10px 25px 25px;
+  overflow-y:auto;
+  position:relative;
+}
+.letter-content::before{
+  content:'';position:absolute;
+  top:0;left:25px;right:25px;bottom:0;
+  background:repeating-linear-gradient(transparent,transparent 32px,#e8d0c0 32px,#e8d0c0 33px);
+  opacity:.35;pointer-events:none;
+}
+
+#letter-body{
+  font-size:17px;color:#5a3e4b;
+  line-height:33px;
+  outline:none;word-break:break-word;
+  position:relative;z-index:1;
+  min-height:160px;
+}
+#letter-body:focus{background:rgba(232,197,168,.1);border-radius:4px;padding:4px}
+
+.close-btn{
+  position:absolute;top:8px;right:14px;
+  font-size:26px;color:#c8506e;
+  cursor:pointer;z-index:10;
+  background:none;border:none;
+  opacity:.6;transition:opacity .2s;
+  line-height:1;
+}
+.close-btn:hover{opacity:1}
+
+/* ===== 图片放大查看 ===== */
+#image-viewer{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(160deg,#fff5f7,#ffe8ee 40%,#ffd6e0);
+  z-index:300;
+  display:none;
+  align-items:center;justify-content:center;
+  flex-direction:column;
+  padding:20px;
+}
+#image-viewer.show{display:flex;animation:fadeIn .4s}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+
+.viewer-content{
+  display:flex;flex-direction:column;
+  align-items:center;
+  max-width:90vw;
+  max-height:80vh;
+  overflow:hidden;
+}
+
+/* 照片相框 */
+.viewer-frame{
+  padding:10px;
+  background:linear-gradient(145deg,#fff,#f5f0eb);
+  border-radius:16px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.06),
+    0 8px 30px rgba(180,60,100,.12),
+    inset 0 0 0 1px rgba(200,160,130,.15),
+    inset 0 1px 0 rgba(255,255,255,.8);
+  transform:rotate(var(--viewer-rot, -2deg));
+  transition:transform .3s;
+  cursor:pointer;
+}
+
+#viewer-img{
+  display:block;
+  max-width:80vw;max-height:50vh;
+  border-radius:8px;
+  object-fit:contain;
+  background:#fff;
+}
+
+/* 留言区 */
+.viewer-message{
+  margin-top:20px;
+  width:100%;max-width:360px;
+}
+.viewer-message textarea{
+  width:100%;
+  min-height:80px;
+  padding:14px 16px;
+  border:2px solid rgba(200,100,130,.2);
+  border-radius:12px;
+  background:rgba(255,255,255,.7);
+  font-size:14px;
+  color:#8b4513;
+  font-family:inherit;
+  resize:vertical;
+  outline:none;
+  transition:border-color .2s,background .2s;
+  line-height:1.6;
+}
+.viewer-message textarea:focus{
+  border-color:rgba(200,100,130,.4);
+  background:rgba(255,255,255,.9);
+}
+.viewer-message textarea::placeholder{
+  color:rgba(139,69,19,.3);
+}
+
+.viewer-close{
+  margin-top:16px;
+  background:rgba(200,100,130,.15);
+  color:#c8506e;
+  border:none;
+  padding:10px 28px;
+  border-radius:25px;
+  font-size:14px;
+  cursor:pointer;
+  font-weight:600;
+  transition:background .2s;
+}
+.viewer-close:hover{background:rgba(200,100,130,.25)}
+
+/* 逐字显示 */
+#letter-body.typing .char{
+  opacity:0;
+  animation:charAppear .5s ease-out forwards;
+}
+@keyframes charAppear{
+  0%{opacity:0;transform:translateY(6px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* 上传图片 */
+.upload-photos{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.75);
+  z-index:150;
+  display:none;
+  align-items:center;justify-content:center;
+  flex-direction:column;
+  padding:20px;
+}
+.upload-photos.show{display:flex}
+
+.upload-photos-box{
+  background:#fff;
+  border-radius:18px;
+  padding:35px;
+  text-align:center;
+  max-width:380px;
+  width:100%;
+  box-shadow:0 10px 40px rgba(0,0,0,.2);
+}
+.upload-photos-box h3{color:#8b4513;margin-bottom:15px;font-size:20px}
+.upload-photos-box p{color:#999;font-size:14px;margin-bottom:20px}
+
+.photo-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:18px;
+  max-height:220px;
+  overflow-y:auto;
+}
+.photo-grid-item{
+  aspect-ratio:1;
+  border-radius:10px;
+  overflow:hidden;
+  background:#f5f5f5;
+  cursor:pointer;
+  position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.photo-grid-item img{width:100%;height:100%;object-fit:cover}
+.photo-grid-item .remove{
+  position:absolute;top:3px;right:3px;
+  width:22px;height:22px;
+  background:rgba(0,0,0,.55);
+  color:#fff;border:none;
+  border-radius:50%;
+  font-size:14px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.add-photo-btn{
+  display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;
+  border-radius:10px;
+  border:2.5px dashed #ddd;
+  background:#fafafa;
+  cursor:pointer;
+  font-size:36px;
+  color:#ccc;
+  transition:all .2s;
+}
+.add-photo-btn:hover{border-color:#d4a574;color:#d4a574;background:#fdf5ee}
+
+.upload-actions{display:flex;gap:12px;justify-content:center}
+.upload-actions button{
+  padding:12px 28px;
+  border-radius:28px;
+  border:none;
+  font-size:15px;
+  cursor:pointer;
+  font-weight:600;
+}
+.btn-start{background:linear-gradient(135deg,#d4367a,#a0185e);color:#fff;box-shadow:0 4px 15px rgba(212,54,122,.3)}
+.btn-skip{background:#f0f0f0;color:#888}
 </style>
 </head>
 <body>
 
-<!-- 装饰元素 -->
-<div id="decorations"></div>
+<div id="hearts"></div>
 
-<!-- 小猫 -->
-<div id="cat-wrap" class="state-sleeping">
-  <div class="cat">
-    <!-- SVG 布偶猫 -->
-    <svg viewBox="0 0 160 130" xmlns="http://www.w3.org/2000/svg">
-      <!-- 尾巴 -->
-      <g class="tail">
-        <path d="M130,95 Q150,85 148,65 Q146,50 138,55" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" filter="url(#furShadow)"/>
-      </g>
-
-      <!-- 身体 -->
-      <ellipse cx="80" cy="90" rx="50" ry="30" fill="#fff" filter="url(#furShadow)"/>
-      <!-- 身体上的浅色斑纹 -->
-      <ellipse cx="75" cy="88" rx="35" ry="22" fill="#faf5f5" opacity=".5"/>
-
-      <!-- 前爪 (睡觉时收起) -->
-      <ellipse cx="55" cy="110" rx="12" ry="6" fill="#fff"/>
-      <ellipse cx="95" cy="110" rx="12" ry="6" fill="#fff"/>
-      <!-- 爪垫 -->
-      <ellipse cx="55" cy="109" rx="8" ry="3" fill="#ffb6c1" opacity=".6"/>
-      <ellipse cx="95" cy="109" rx="8" ry="3" fill="#ffb6c1" opacity=".6"/>
-
-      <!-- 头部 -->
-      <circle cx="80" cy="50" r="32" fill="#fff" filter="url(#furShadow)"/>
-
-      <!-- 耳朵 -->
-      <polygon points="52,32 44,8 62,28" fill="#fff"/>
-      <polygon points="53,30 47,13 60,27" fill="#ffb6c1" opacity=".5"/>
-      <polygon points="108,32 116,8 98,28" fill="#fff"/>
-      <polygon points="107,30 113,13 100,27" fill="#ffb6c1" opacity=".5"/>
-
-      <!-- 耳朵毛 -->
-      <ellipse cx="50" cy="18" rx="6" ry="3" fill="#fff" opacity=".7"/>
-      <ellipse cx="110" cy="18" rx="6" ry="3" fill="#fff" opacity=".7"/>
-
-      <!-- 脸部斑纹 (布偶猫特征) -->
-      <ellipse cx="80" cy="55" rx="18" ry="15" fill="#faf5f5" opacity=".4"/>
-
-      <!-- 眼睛 (睁开) -->
-      <g class="eyes-open">
-        <ellipse cx="67" cy="48" rx="7" ry="8" fill="#4a90d9"/>
-        <ellipse cx="93" cy="48" rx="7" ry="8" fill="#4a90d9"/>
-        <ellipse cx="67" cy="48" rx="5" ry="6" fill="#5ba3ec"/>
-        <ellipse cx="93" cy="48" rx="5" ry="6" fill="#5ba3ec"/>
-        <circle cx="65" cy="46" r="2.5" fill="#fff" opacity=".9"/>
-        <circle cx="91" cy="46" r="2.5" fill="#fff" opacity=".9"/>
-        <circle cx="69" cy="50" r="1" fill="#fff" opacity=".6"/>
-        <circle cx="95" cy="50" r="1" fill="#fff" opacity=".6"/>
-        <!-- 瞳孔 -->
-        <ellipse cx="67" cy="48" rx="3" ry="4" fill="#2c5f8a" opacity=".7"/>
-        <ellipse cx="93" cy="48" rx="3" ry="4" fill="#2c5f8a" opacity=".7"/>
-      </g>
-
-      <!-- 眼睛 (闭上 - 睡觉) -->
-      <g class="eyes-closed">
-        <path d="M60,48 Q67,52 74,48" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M86,48 Q93,52 100,48" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-      </g>
-
-      <!-- 鼻子 -->
-      <ellipse cx="80" cy="55" rx="3" ry="2" fill="#ffb6c1"/>
-
-      <!-- 嘴巴 (微笑) -->
-      <path d="M75,58 Q80,62 85,58" fill="none" stroke="#c08080" stroke-width="1" stroke-linecap="round"/>
-
-      <!-- 胡须 -->
-      <line x1="55" y1="52" x2="38" y2="48" stroke="#ddd" stroke-width=".8"/>
-      <line x1="55" y1="56" x2="36" y2="58" stroke="#ddd" stroke-width=".8"/>
-      <line x1="105" y1="52" x2="122" y2="48" stroke="#ddd" stroke-width=".8"/>
-      <line x1="105" y1="56" x2="124" y2="58" stroke="#ddd" stroke-width=".8"/>
-
-      <!-- 腮红 -->
-      <ellipse cx="58" cy="57" rx="6" ry="4" fill="#ffb6c1" opacity=".35"/>
-      <ellipse cx="102" cy="57" rx="6" ry="4" fill="#ffb6c1" opacity=".35"/>
-
-      <!-- 信封 (叼在嘴里) -->
-      <g class="envelope-in-mouth">
-        <rect x="0" y="0" width="40" height="26" rx="2" fill="url(#envGrad)"/>
-        <polygon points="0,0 20,14 40,0" fill="#ff85c8" opacity=".8"/>
-        <text x="20" y="17" text-anchor="middle" font-size="10" fill="#fff">♥</text>
-      </g>
-    </svg>
-
-    <!-- 睡觉呼吸气泡 -->
-    <div class="bubble" style="display:none"></div>
-    <div class="bubble" style="display:none"></div>
-
-    <!-- 提示文字 -->
-    <div class="hint" style="display:none"></div>
+<!-- 单猫爪 -->
+<div id="single-paw" onclick="showPawsEnvelope()">
+  <div class="paw">
+    <div class="toe"></div><div class="toe"></div><div class="toe"></div>
   </div>
+  <div class="hint-text">点我喵~</div>
 </div>
 
-<!-- 大信封 -->
-<div id="envelope-wrap">
-  <div id="envelope">
-    <div class="envelope-flap"></div>
-    <span class="rose rose-tl">🌹</span>
-    <span class="rose rose-br">🌹</span>
-    <span class="rose rose-tr">✿</span>
-    <span class="rose rose-bl">✿</span>
-    <div class="envelope-text" id="envelope-text">给最特别的你</div>
-    <div id="wax-seal">福</div>
+<!-- 双猫爪+信封 -->
+<div id="paws-envelope">
+  <div class="paw-left">
+    <div class="toe"></div><div class="toe"></div><div class="toe"></div>
+  </div>
+  <div id="envelope-wrap" onclick="standEnvelope()">
+    <div id="envelope">
+      <div class="envelope-flap"></div>
+      <div class="envelope-text" contenteditable="true" onclick="event.stopPropagation()">给你的信 ♥</div>
+      <span class="corner-deco corner-tl">🌸</span>
+      <span class="corner-deco corner-tr">🌸</span>
+      <span class="corner-deco corner-bl">🌸</span>
+      <span class="corner-deco corner-br">🌸</span>
+      <div class="envelope-bottom-deco"></div>
+      <div id="wax-seal" onclick="event.stopPropagation();openLetter()"></div>
+    </div>
+  </div>
+  <div class="paw-right">
+    <div class="toe"></div><div class="toe"></div><div class="toe"></div>
   </div>
 </div>
 
 <!-- 信纸 -->
 <div id="letter-wrap">
   <div id="letter">
-    <div class="close-btn" id="close-btn">×</div>
-    <div class="letter-content-inner">
-      <div id="letter-title" contenteditable="true">给最特别的你</div>
-      <div id="letter-body" contenteditable="true"></div>
+    <button class="close-btn" onclick="closeLetter()">×</button>
+
+    <!-- 麻绳风铃 -->
+    <div class="wind-chimes" id="windChimes">
+      <div class="rope">
+        <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+          <path class="rope-texture" d="M5,15 Q100,2 200,14 Q300,2 395,15"/>
+          <path d="M5,14 Q100,1 200,13 Q300,1 395,14"/>
+        </svg>
+      </div>
     </div>
-    <button class="save-btn" id="save-btn">保存 ♥</button>
+    <div class="page-indicator" id="pageIndicator"></div>
+
+    <div class="letter-header">
+      <div id="letter-title" contenteditable="true">亲爱的</div>
+    </div>
+    <div class="letter-content">
+      <div id="letter-body" contenteditable="true">
+        这里是你的信件内容...<br><br>
+        每一句话都带着温暖的心意 ♡
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 图片放大 -->
+<div id="image-viewer">
+  <div class="viewer-content">
+    <div class="viewer-frame" id="viewer-frame" onclick="closeViewer()">
+      <img id="viewer-img" src="" alt="">
+    </div>
+    <div class="viewer-message">
+      <textarea id="viewer-textarea" placeholder="写下你想说的话..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- 上传图片 -->
+<div class="upload-photos" id="uploadPhotos">
+  <div class="upload-photos-box">
+    <h3>📷 上传图片</h3>
+    <p>上传你想展示的图片，支持多选</p>
+    <div class="photo-grid" id="photoGrid"></div>
+    <label class="add-photo-btn" for="photoInput">+</label>
+    <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this.files)">
+    <div class="upload-actions" style="margin-top:18px">
+      <button class="btn-start" onclick="confirmPhotos()">确认</button>
+      <button class="btn-skip" onclick="skipUpload()">跳过</button>
+    </div>
   </div>
 </div>
 
 <script>
+var state = {
+  photos: [],
+  currentPage: 0,
+  rotateTimer: null,
+  isViewing: false,
+  bgSet: false
+};
+
+// ===== 本地存储 =====
+var SK = 'catLetter_';
+function saveContent(){
+  try{
+    localStorage.setItem(SK+'env', document.querySelector('.envelope-text').innerText);
+    localStorage.setItem(SK+'title', document.getElementById('letter-title').innerText);
+    localStorage.setItem(SK+'body', document.getElementById('letter-body').innerHTML);
+  }catch(e){}
+}
+function loadContent(){
+  try{
+    var e=localStorage.getItem(SK+'env'); if(e) document.querySelector('.envelope-text').innerText=e;
+    var t=localStorage.getItem(SK+'title'); if(t) document.getElementById('letter-title').innerText=t;
+    var b=localStorage.getItem(SK+'body'); if(b) document.getElementById('letter-body').innerHTML=b;
+  }catch(e){}
+}
+document.querySelector('.envelope-text').addEventListener('input', saveContent);
+document.getElementById('letter-title').addEventListener('input', saveContent);
+document.getElementById('letter-body').addEventListener('input', saveContent);
+window.addEventListener('DOMContentLoaded', loadContent);
+
+// 漂浮爱心
 (function(){
-  // ===== 状态 =====
-  const SLEEPING='sleeping',WALKING='walking',WAITING='waiting',
-        ENVELOPE_DOWN='envelope_down',LETTER_OPEN='letter_open';
-  let state=SLEEPING;
-
-  // ===== DOM =====
-  const catWrap=document.getElementById('cat-wrap');
-  const envelopeWrap=document.getElementById('envelope-wrap');
-  const envelopeText=document.getElementById('envelope-text');
-  const waxSeal=document.getElementById('wax-seal');
-  const letterWrap=document.getElementById('letter-wrap');
-  const letter=document.getElementById('letter');
-  const letterTitle=document.getElementById('letter-title');
-  const letterBody=document.getElementById('letter-body');
-  const saveBtn=document.getElementById('save-btn');
-  const closeBtn=document.getElementById('close-btn');
-
-  // ===== localStorage =====
-  function loadData(){
-    try{
-      const d=JSON.parse(localStorage.getItem('catLetter')||'{}');
-      if(d.et)envelopeText.textContent=d.et;
-      if(d.lt)letterTitle.textContent=d.lt;
-      if(d.lb)letterBody.innerHTML=d.lb;
-    }catch(e){}
+  var c = document.getElementById('hearts');
+  for(var i=0;i<12;i++){
+    var h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = '♥';
+    h.style.left = Math.random()*100 + 'vw';
+    h.style.fontSize = (16+Math.random()*16) + 'px';
+    h.style.animationDuration = (7+Math.random()*10) + 's';
+    h.style.animationDelay = Math.random()*12 + 's';
+    c.appendChild(h);
   }
-  function saveData(){
-    localStorage.setItem('catLetter',JSON.stringify({
-      et:envelopeText.textContent,
-      lt:letterTitle.textContent,
-      lb:letterBody.innerHTML
-    }));
-    // 保存动画反馈
-    saveBtn.textContent='已保存 ✓';
-    setTimeout(()=>{saveBtn.textContent='保存 ♥'},1500);
-  }
-
-  // ===== 装饰 =====
-  function createDecor(){
-    const decor=document.getElementById('decorations');
-    // 花瓣
-    for(let i=0;i<12;i++){
-      const p=document.createElement('div');
-      p.className='petal';
-      p.style.left=Math.random()*100+'%';
-      p.style.animationDuration=(6+Math.random()*8)+'s';
-      p.style.animationDelay=Math.random()*8+'s';
-      p.style.width=(8+Math.random()*8)+'px';
-      p.style.height=(6+Math.random()*6)+'px';
-      decor.appendChild(p);
-    }
-    // 星星
-    for(let i=0;i<8;i++){
-      const s=document.createElement('div');
-      s.className='sparkle';
-      s.style.left=Math.random()*100+'%';
-      s.style.top=Math.random()*100+'%';
-      s.style.animationDelay=Math.random()*3+'s';
-      decor.appendChild(s);
-    }
-  }
-
-  // ===== 流程控制 =====
-
-  // 3秒后猫开始走过来
-  function startWalk(){
-    state=WALKING;
-    catWrap.className='walk-over show-envelope-in-mouth';
-    catWrap.style.opacity='1';
-    // 显示气泡
-    const bubbles=catWrap.querySelectorAll('.bubble');
-    bubbles.forEach(b=>b.style.display='block');
-
-    // 走路动画结束
-    setTimeout(()=>{
-      state=WAITING;
-      catWrap.className='waiting-cat';
-      const hint=catWrap.querySelector('.hint');
-      hint.textContent='💕 点击小猫 💕';
-      hint.style.display='block';
-      // 隐藏气泡
-      bubbles.forEach(b=>b.style.display='none');
-    },2800);
-  }
-
-  // 点击猫
-  function clickCat(){
-    if(state!==WAITING)return;
-    state=ENVELOPE_DOWN;
-
-    // 猫走开
-    catWrap.style.transition='transform 1s ease-in,opacity 1s ease-in';
-    catWrap.style.transform='translateX(-50%) translateY(-30px)';
-    catWrap.style.opacity='0';
-
-    // 显示大信封
-    setTimeout(()=>{
-      catWrap.style.display='none';
-      envelopeWrap.className='visible';
-    },800);
-  }
-
-  // 点击火漆印章
-  function clickSeal(e){
-    e.stopPropagation();
-    if(state!==ENVELOPE_DOWN)return;
-    state=LETTER_OPEN;
-
-    // 信封打开动画
-    envelopeWrap.className='visible opened';
-
-    // 显示信纸
-    setTimeout(()=>{
-      envelopeWrap.style.opacity='0';
-      envelopeWrap.style.pointerEvents='none';
-      letterWrap.className='visible';
-      setTimeout(()=>{
-        letter.className='expanded';
-      },100);
-    },800);
-  }
-
-  // 关闭信
-  function closeLetter(){
-    letter.className='';
-    setTimeout(()=>{
-      letterWrap.className='';
-      envelopeWrap.style.opacity='1';
-      envelopeWrap.style.pointerEvents='auto';
-      envelopeWrap.className='visible';
-      state=ENVELOPE_DOWN;
-    },500);
-  }
-
-  // ===== 事件绑定 =====
-  catWrap.addEventListener('click',clickCat);
-  waxSeal.addEventListener('click',clickSeal);
-  closeBtn.addEventListener('click',closeLetter);
-  saveBtn.addEventListener('click',function(e){
-    e.stopPropagation();
-    saveData();
-  });
-
-  // 信封文字编辑后自动保存
-  envelopeText.addEventListener('blur',function(){
-    try{
-      const d=JSON.parse(localStorage.getItem('catLetter')||'{}');
-      d.et=envelopeText.textContent;
-      localStorage.setItem('catLetter',JSON.stringify(d));
-    }catch(e){}
-  });
-
-  // ===== 启动 =====
-  loadData();
-  createDecor();
-  setTimeout(startWalk,1500);
-
 })();
+
+function showPawsEnvelope(){
+  document.getElementById('single-paw').style.display = 'none';
+  var pe = document.getElementById('paws-envelope');
+  pe.style.display = 'flex';
+  pe.classList.add('show');
+}
+
+function standEnvelope(){
+  var ew = document.getElementById('envelope-wrap');
+  ew.classList.add('standing');
+  setTimeout(function(){
+    document.querySelectorAll('.paw-left,.paw-right').forEach(function(p){
+      p.style.transition = 'opacity .5s';
+      p.style.opacity = '0';
+    });
+  }, 600);
+}
+
+function openLetter(){
+  if(state.photos.length > 0){
+    burstAndShowLetter();
+  } else {
+    startUpload();
+  }
+}
+
+// 图片爆发
+function burstAndShowLetter(){
+  var ew = document.getElementById('envelope-wrap');
+  var rect = ew.getBoundingClientRect();
+  var cx = rect.left + rect.width/2;
+  var cy = rect.top + rect.height * 0.15;
+
+  var total = state.photos.length;
+  var cols = Math.ceil(Math.sqrt(total));
+  var rows = Math.ceil(total / cols);
+  var spacingX = window.innerWidth / (cols + 1);
+  var spacingY = window.innerHeight / (rows + 2);
+
+  state.photos.forEach(function(src, i){
+    var img = document.createElement('img');
+    img.className = 'photo-burst';
+    img.src = src;
+
+    var col = i % cols;
+    var row = Math.floor(i / cols);
+    var tx = spacingX * (col + 1) - cx + (Math.random() - 0.5) * 60;
+    var ty = spacingY * (row + 1) - cy + (Math.random() - 0.5) * 40 - 50;
+
+    img.style.left = cx + 'px';
+    img.style.top = cy + 'px';
+    img.style.setProperty('--tx', tx + 'px');
+    img.style.setProperty('--ty', ty + 'px');
+    img.style.setProperty('--rot', ((Math.random() - 0.5) * 30) + 'deg');
+    img.style.zIndex = 250 + i;
+    img.style.animationDelay = (i * 0.08) + 's';
+
+    document.body.appendChild(img);
+    setTimeout(function(){ img.remove(); }, 1800 + i * 80);
+  });
+
+  setTimeout(function(){
+    ew.style.display = 'none';
+    showLetter();
+  }, 1200 + total * 80);
+}
+
+// 上传图片
+function startUpload(){
+  document.getElementById('uploadPhotos').classList.add('show');
+  renderPhotoGrid();
+}
+
+function handlePhotos(files){
+  for(var i=0;i<files.length;i++){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      state.photos.push(e.target.result);
+      renderPhotoGrid();
+    };
+    reader.readAsDataURL(files[i]);
+  }
+}
+
+function renderPhotoGrid(){
+  var grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  state.photos.forEach(function(src,i){
+    var div = document.createElement('div');
+    div.className = 'photo-grid-item';
+    div.innerHTML = '<img src="'+src+'" alt="">' +
+      '<button class="remove" onclick="removePhoto('+i+')">×</button>';
+    grid.appendChild(div);
+  });
+  var addBtn = document.createElement('label');
+  addBtn.className = 'add-photo-btn';
+  addBtn.setAttribute('for','photoInput');
+  addBtn.textContent = '+';
+  grid.appendChild(addBtn);
+}
+
+function removePhoto(i){
+  state.photos.splice(i,1);
+  renderPhotoGrid();
+}
+
+function confirmPhotos(){
+  document.getElementById('uploadPhotos').classList.remove('show');
+  if(state.photos.length === 0){
+    showLetter();
+  } else {
+    burstAndShowLetter();
+  }
+}
+
+function skipUpload(){
+  document.getElementById('uploadPhotos').classList.remove('show');
+  showLetter();
+}
+
+// 显示信纸 + 风铃
+function showLetter(){
+  clearInterval(state.rotateTimer);
+
+  var wc = document.getElementById('windChimes');
+  // 保留 rope
+  var existingItems = wc.querySelectorAll('.chime-item');
+  existingItems.forEach(function(el){ el.remove(); });
+
+  if(state.photos.length > 0){
+    // 每页3张
+    var perPage = 3;
+    var totalPages = Math.ceil(state.photos.length / perPage);
+    state.currentPage = 0;
+
+    showChimePage(0);
+
+    // 页码指示
+    var indicator = document.getElementById('pageIndicator');
+    indicator.innerHTML = '';
+    if(totalPages > 1){
+      for(var i=0;i<totalPages;i++){
+        var dot = document.createElement('div');
+        dot.className = 'page-dot' + (i===0?' active':'');
+        indicator.appendChild(dot);
+      }
+      // 自动轮播
+      state.rotateTimer = setInterval(function(){
+        if(!state.isViewing){
+          state.currentPage = (state.currentPage + 1) % totalPages;
+          showChimePage(state.currentPage);
+          updatePageDots(totalPages);
+        }
+      }, 3000);
+    } else {
+      indicator.innerHTML = '';
+    }
+  } else {
+    var hint = document.createElement('div');
+    hint.className = 'no-photos-hint';
+    hint.textContent = '📷 点击添加照片';
+    hint.onclick = startUpload;
+    wc.appendChild(hint);
+    document.getElementById('pageIndicator').innerHTML = '';
+  }
+
+  var lw = document.getElementById('letter-wrap');
+  lw.classList.add('show');
+
+  // 逐字显示
+  var body = document.getElementById('letter-body');
+  var text = body.innerHTML;
+  body.innerHTML = '';
+  body.classList.add('typing');
+
+  var chars = [];
+  var temp = document.createElement('div');
+  temp.innerHTML = text;
+  var nodes = temp.childNodes;
+  nodes.forEach(function(node){
+    if(node.nodeType === 3){
+      for(var i=0;i<node.textContent.length;i++) chars.push(node.textContent[i]);
+    } else {
+      chars.push(node.outerHTML || '');
+    }
+  });
+
+  var idx = 0;
+  function typeNext(){
+    if(idx >= chars.length){ body.classList.remove('typing'); return; }
+    var span = document.createElement('span');
+    span.className = 'char';
+    span.style.animationDelay = '0s';
+    if(chars[idx].startsWith('<')){ span.innerHTML = chars[idx]; }
+    else { span.textContent = chars[idx]; }
+    body.appendChild(span);
+    idx++;
+    setTimeout(typeNext, 90);
+  }
+  typeNext();
+}
+
+// 显示指定页的风铃
+function showChimePage(page){
+  var wc = document.getElementById('windChimes');
+  var oldItems = wc.querySelectorAll('.chime-item');
+  oldItems.forEach(function(el){ el.remove(); });
+
+  var perPage = 3;
+  var start = page * perPage;
+  var end = Math.min(start + perPage, state.photos.length);
+  var count = end - start;
+
+  // 用百分比均匀分布
+  var positions = [];
+  if(count === 1) positions = [50];
+  else if(count === 2) positions = [30, 70];
+  else positions = [20, 50, 80];
+
+  for(var i = start; i < end; i++){
+    var src = state.photos[i];
+    var idx = i - start;
+    var item = document.createElement('div');
+    item.className = 'chime-item';
+    item.style.animationDelay = (idx * 0.3) + 's';
+    item.style.left = positions[idx] + '%';
+    item.style.top = '8px';
+    item.style.transform = 'translateX(-50%)';
+    item.onclick = (function(s){ return function(){ viewImage(s); }; })(src);
+
+    item.innerHTML =
+      '<div class="chime-line"></div>' +
+      '<div class="chime-clip"></div>' +
+      '<img class="chime-photo" src="'+src+'" alt="">';
+    wc.appendChild(item);
+  }
+}
+
+function updatePageDots(totalPages){
+  var dots = document.querySelectorAll('.page-dot');
+  dots.forEach(function(dot, i){
+    dot.className = 'page-dot' + (i===state.currentPage?' active':'');
+  });
+}
+
+// 图片放大 — 暂停轮播
+function viewImage(src){
+  state.isViewing = true;
+  document.getElementById('viewer-img').src = src;
+  document.getElementById('viewer-textarea').value = '';
+  var rot = (Math.random() - 0.5) * 8;
+  document.getElementById('viewer-frame').style.setProperty('--viewer-rot', rot + 'deg');
+  document.getElementById('image-viewer').classList.add('show');
+}
+
+document.getElementById('viewer-img').addEventListener('dblclick',function(){
+  var src = this.src;
+  document.body.style.background = 'url('+src+') center/cover no-repeat';
+  state.bgSet = true;
+  closeViewer();
+});
+
+function closeViewer(){
+  document.getElementById('image-viewer').classList.remove('show');
+  state.isViewing = false;
+}
+
+// 关闭信纸
+function closeLetter(){
+  clearInterval(state.rotateTimer);
+  document.getElementById('letter-wrap').classList.remove('show');
+  setTimeout(function(){
+    document.getElementById('envelope-wrap').style.display = '';
+    document.getElementById('envelope-wrap').classList.remove('standing');
+    document.getElementById('single-paw').style.display = '';
+    document.getElementById('paws-envelope').style.display = '';
+    document.getElementById('paws-envelope').classList.remove('show');
+    document.querySelectorAll('.paw-left,.paw-right').forEach(function(p){ p.style.opacity = '1'; });
+    if(state.bgSet){
+      document.body.style.background = 'linear-gradient(160deg,#ffc0cb 0%,#ffe4e9 40%,#ffd1dc 100%)';
+      state.bgSet = false;
+    }
+  }, 400);
+}
 </script>
+
 </body>
 </html>
