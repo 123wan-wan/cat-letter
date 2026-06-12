@@ -746,7 +746,8 @@ body{
     <div class="letter-header">
       <div id="letter-title" contenteditable="true">亲爱的</div>
       <div style="margin-top:8px">
-        <span style="font-size:13px;color:#c8506e;cursor:pointer" onclick="openMusicUpload()">🎶 添加背景音乐</span>
+        <span style="font-size:13px;color:#c8506e;cursor:pointer;margin-right:10px;" onclick="openMusicUpload()">🎶 添加背景音乐</span>
+        <span style="font-size:13px;color:#c8506e;cursor:pointer" onclick="startUpload()">📷 添加照片</span>
       </div>
     </div>
     <div class="letter-content">
@@ -822,6 +823,8 @@ function saveContent(){
     localStorage.setItem(SK+'env', document.querySelector('.envelope-text').innerText);
     localStorage.setItem(SK+'title', document.getElementById('letter-title').innerText);
     localStorage.setItem(SK+'body', document.getElementById('letter-body').innerHTML);
+    // 保存已添加的图片（Data URL 数组）
+    try{ localStorage.setItem(SK+'photos', JSON.stringify(state.photos)); }catch(e){}
   }catch(e){}
 }
 function loadContent(){
@@ -829,6 +832,14 @@ function loadContent(){
     var e=localStorage.getItem(SK+'env'); if(e) document.querySelector('.envelope-text').innerText=e;
     var t=localStorage.getItem(SK+'title'); if(t) document.getElementById('letter-title').innerText=t;
     var b=localStorage.getItem(SK+'body'); if(b) document.getElementById('letter-body').innerHTML=b;
+    // 恢复已保存的图片
+    try{
+      var p = localStorage.getItem(SK+'photos');
+      if(p){
+        var arr = JSON.parse(p);
+        if(Array.isArray(arr)) state.photos = arr;
+      }
+    }catch(e){console.log('Load photos error', e)}
   }catch(e){}
 }
 document.querySelector('.envelope-text').addEventListener('input', saveContent);
@@ -924,14 +935,45 @@ function startUpload(){
 }
 
 function handlePhotos(files){
-  for(var i=0;i<files.length;i++){
+  // 将每张图片读取并压缩为 JPEG 缩略图后保存，降低 localStorage 占用
+  Array.from(files).forEach(function(file){
+    if(!file.type || file.type.indexOf('image') === -1) return;
     var reader = new FileReader();
-    reader.onload = function(e){
-      state.photos.push(e.target.result);
-      renderPhotoGrid();
+    reader.onload = function(ev){
+      var srcData = ev.target.result;
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var maxDim = 1024; // 最大边长，按需调整
+          var w = img.width, h = img.height;
+          if(w > maxDim || h > maxDim){
+            if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          var compressed = canvas.toDataURL('image/jpeg', 0.8);
+          state.photos.push(compressed);
+        }catch(err){
+          // 回退：无法压缩则直接保存原始 DataURL
+          state.photos.push(srcData);
+        }
+        // 变更后立即持久化并更新界面
+        saveContent();
+        try{ renderPhotoGrid(); }catch(e){}
+      };
+      img.onerror = function(){
+        // 读取图片失败则尝试直接保存 DataURL
+        state.photos.push(srcData);
+        saveContent();
+        try{ renderPhotoGrid(); }catch(e){}
+      };
+      img.src = srcData;
     };
-    reader.readAsDataURL(files[i]);
-  }
+    reader.readAsDataURL(file);
+  });
 }
 
 function renderPhotoGrid(){
@@ -953,6 +995,8 @@ function renderPhotoGrid(){
 
 function removePhoto(i){
   state.photos.splice(i,1);
+  // 移除后持久化并更新界面
+  saveContent();
   renderPhotoGrid();
 }
 
@@ -1138,6 +1182,25 @@ function closeLetter(){
 // ===== 背景音乐功能 =====
 var bgAudio = null;
 var isPlaying = false;
+var needResumeOnGesture = false;
+
+function _tryResumeOnGesture(){
+  function resume(){
+    if(!bgAudio) return;
+    bgAudio.play().then(function(){
+      isPlaying = true;
+      document.getElementById('music-btn').classList.add('playing');
+      document.getElementById('music-btn').textContent = '🎵';
+    }).catch(function(){
+      // keep false
+    });
+    document.removeEventListener('click', resume);
+    document.removeEventListener('touchstart', resume);
+    needResumeOnGesture = false;
+  }
+  document.addEventListener('click', resume, {once:true});
+  document.addEventListener('touchstart', resume, {once:true});
+}
 
 // 加载已保存的音乐
 function loadMusic(){
@@ -1155,6 +1218,17 @@ function loadMusic(){
         document.getElementById('musicName').textContent = '🎵 ' + savedName;
         document.getElementById('musicCurrent').classList.add('show');
       }
+      // 尝试自动播放（浏览器可能阻止），若被阻止则在下一次用户交互时恢复
+      bgAudio.play().then(function(){
+        isPlaying = true;
+        document.getElementById('music-btn').classList.add('playing');
+        document.getElementById('music-btn').textContent = '🎵';
+      }).catch(function(err){
+        console.log('Auto-play blocked on load:', err);
+        isPlaying = false;
+        needResumeOnGesture = true;
+        _tryResumeOnGesture();
+      });
     }
   }catch(e){
     console.log('Music load error:', e);
@@ -1233,6 +1307,7 @@ function closeMusicUpload(){
 function removeMusic(){
   if(bgAudio){ bgAudio.pause(); bgAudio = null; }
   isPlaying = false;
+  needResumeOnGesture = false;
   localStorage.removeItem(SK+'music');
   localStorage.removeItem(SK+'musicName');
   document.getElementById('music-btn').classList.remove('show','playing');
@@ -1244,6 +1319,8 @@ function removeMusic(){
 window.addEventListener('DOMContentLoaded', function(){
   loadContent();
   loadMusic();
+  // 页面加载时渲染已保存的图片缩略图（如果有）
+  try{ renderPhotoGrid(); }catch(e){}
 });
 </script>
 
