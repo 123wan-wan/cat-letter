@@ -626,6 +626,71 @@ body{
 }
 .btn-start{background:linear-gradient(135deg,#d4367a,#a0185e);color:#fff;box-shadow:0 4px 15px rgba(212,54,122,.3)}
 .btn-skip{background:#f0f0f0;color:#888}
+
+/* ===== 背景音乐 ===== */
+#music-btn{
+  position:fixed;top:15px;right:15px;
+  width:44px;height:44px;
+  border-radius:50%;border:none;
+  background:rgba(255,255,255,.8);
+  box-shadow:0 2px 10px rgba(0,0,0,.1);
+  cursor:pointer;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  transition:all .3s;
+  opacity:0;pointer-events:none;
+}
+#music-btn.show{opacity:1;pointer-events:auto}
+#music-btn:hover{transform:scale(1.1);background:rgba(255,255,255,.95)}
+#music-btn.playing{animation:musicSpin 2s linear infinite}
+@keyframes musicSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+#music-upload{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.6);
+  z-index:250;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+#music-upload.show{display:flex}
+.music-upload-box{
+  background:#fff;
+  border-radius:20px;
+  padding:35px;
+  text-align:center;
+  max-width:360px;
+  width:100%;
+  box-shadow:0 10px 40px rgba(0,0,0,.2);
+}
+.music-upload-box h3{color:#d4608a;margin-bottom:10px;font-size:18px}
+.music-upload-box p{color:#999;font-size:13px;margin-bottom:20px}
+.music-upload-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 32px;
+  background:linear-gradient(135deg,#ff69b4,#ff1493);
+  color:#fff;border:none;border-radius:30px;
+  font-size:15px;cursor:pointer;
+  box-shadow:0 4px 15px rgba(255,20,147,.3);
+  transition:transform .2s;
+}
+.music-upload-btn:hover{transform:scale(1.05)}
+.music-current{
+  margin-top:16px;
+  padding:10px 16px;
+  background:#fff5f7;
+  border-radius:12px;
+  font-size:13px;
+  color:#d4608a;
+  display:none;
+}
+.music-current.show{display:block}
+.music-close{
+  margin-top:18px;
+  background:none;border:none;
+  color:#c8506e;font-size:14px;
+  cursor:pointer;padding:8px 20px;
+}
 </style>
 </head>
 <body>
@@ -680,6 +745,9 @@ body{
 
     <div class="letter-header">
       <div id="letter-title" contenteditable="true">亲爱的</div>
+      <div style="margin-top:8px">
+        <span style="font-size:13px;color:#c8506e;cursor:pointer" onclick="openMusicUpload()">🎶 添加背景音乐</span>
+      </div>
     </div>
     <div class="letter-content">
       <div id="letter-body" contenteditable="true">
@@ -717,6 +785,27 @@ body{
   </div>
 </div>
 
+<!-- 音乐按钮 -->
+<button id="music-btn" onclick="toggleMusic()">🎵</button>
+
+<!-- 上传音乐弹窗 -->
+<div id="music-upload">
+  <div class="music-upload-box">
+    <h3>🎶 上传背景音乐</h3>
+    <p>选择一首喜欢的音乐作为背景乐<br>（支持 mp3、wav、ogg 格式）</p>
+    <label class="music-upload-btn" for="musicInput">
+      <span>🎵</span>
+      <span>选择音乐文件</span>
+    </label>
+    <input type="file" id="musicInput" accept="audio/*" style="display:none" onchange="handleMusic(this.files[0])">
+    <div class="music-current" id="musicCurrent">
+      <span id="musicName"></span>
+      <button class="music-close" onclick="removeMusic()" style="margin-left:10px;color:#e91e8c">✕ 移除</button>
+    </div>
+    <button class="music-close" onclick="closeMusicUpload()">关闭</button>
+  </div>
+</div>
+
 <script>
 var state = {
   photos: [],
@@ -745,7 +834,6 @@ function loadContent(){
 document.querySelector('.envelope-text').addEventListener('input', saveContent);
 document.getElementById('letter-title').addEventListener('input', saveContent);
 document.getElementById('letter-body').addEventListener('input', saveContent);
-window.addEventListener('DOMContentLoaded', loadContent);
 
 // 漂浮爱心
 (function(){
@@ -1046,6 +1134,117 @@ function closeLetter(){
     }
   }, 400);
 }
+
+// ===== 背景音乐功能 =====
+var bgAudio = null;
+var isPlaying = false;
+
+// 加载已保存的音乐
+function loadMusic(){
+  try{
+    var saved = localStorage.getItem(SK+'music');
+    var savedName = localStorage.getItem(SK+'musicName');
+    if(saved){
+      bgAudio = new Audio(saved);
+      bgAudio.loop = true;
+      bgAudio.volume = 0.5;
+      // 显示音乐按钮
+      document.getElementById('music-btn').classList.add('show');
+      // 显示当前音乐名
+      if(savedName){
+        document.getElementById('musicName').textContent = '🎵 ' + savedName;
+        document.getElementById('musicCurrent').classList.add('show');
+      }
+    }
+  }catch(e){
+    console.log('Music load error:', e);
+  }
+}
+
+// 上传音乐
+function handleMusic(file){
+  if(!file) return;
+  // 检查文件大小（限制10MB）
+  if(file.size > 10 * 1024 * 1024){
+    alert('文件太大啦！请选择小于10MB的音乐文件~');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      // 保存到localStorage
+      localStorage.setItem(SK+'music', e.target.result);
+      localStorage.setItem(SK+'musicName', file.name);
+      // 创建音频
+      if(bgAudio){ bgAudio.pause(); bgAudio = null; }
+      bgAudio = new Audio(e.target.result);
+      bgAudio.loop = true;
+      bgAudio.volume = 0.5;
+      // 显示按钮和名称
+      document.getElementById('music-btn').classList.add('show');
+      document.getElementById('musicName').textContent = '🎵 ' + file.name;
+      document.getElementById('musicCurrent').classList.add('show');
+      // 自动播放
+      bgAudio.play().then(function(){
+        isPlaying = true;
+        document.getElementById('music-btn').classList.add('playing');
+        document.getElementById('music-btn').textContent = '🎵';
+      }).catch(function(err){
+        console.log('Auto-play blocked:', err);
+        isPlaying = false;
+        document.getElementById('music-btn').textContent = '🎵';
+      });
+      closeMusicUpload();
+    }catch(err){
+      alert('音乐文件存储失败，可能是文件太大。请尝试更小的文件~');
+      console.log('Music save error:', err);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// 播放/暂停音乐
+function toggleMusic(){
+  if(!bgAudio) return;
+  if(isPlaying){
+    bgAudio.pause();
+    isPlaying = false;
+    document.getElementById('music-btn').classList.remove('playing');
+    document.getElementById('music-btn').textContent = '🔇';
+  }else{
+    bgAudio.play();
+    isPlaying = true;
+    document.getElementById('music-btn').classList.add('playing');
+    document.getElementById('music-btn').textContent = '🎵';
+  }
+}
+
+// 打开音乐上传弹窗
+function openMusicUpload(){
+  document.getElementById('music-upload').classList.add('show');
+}
+
+// 关闭音乐上传弹窗
+function closeMusicUpload(){
+  document.getElementById('music-upload').classList.remove('show');
+}
+
+// 移除音乐
+function removeMusic(){
+  if(bgAudio){ bgAudio.pause(); bgAudio = null; }
+  isPlaying = false;
+  localStorage.removeItem(SK+'music');
+  localStorage.removeItem(SK+'musicName');
+  document.getElementById('music-btn').classList.remove('show','playing');
+  document.getElementById('musicCurrent').classList.remove('show');
+  closeMusicUpload();
+}
+
+// 页面加载时恢复音乐
+window.addEventListener('DOMContentLoaded', function(){
+  loadContent();
+  loadMusic();
+});
 </script>
 
 </body>
