@@ -793,6 +793,11 @@ body{
 
 <!-- 音乐按钮 -->
 <button id="music-btn" onclick="toggleMusic()">🎵</button>
+<!-- 保存按钮（显式保存到本地并推到云） -->
+<div style="position:fixed;top:15px;left:15px;z-index:400;display:flex;align-items:center;gap:8px">
+  <button id="save-btn" style="padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(135deg,#ff93c0,#d4608a);color:#fff;cursor:pointer">保存</button>
+  <span id="save-status" style="font-size:13px;color:#8b4513;display:inline-block;min-width:80px">未保存</span>
+</div>
 
 <!-- 上传音乐弹窗 -->
 <div id="music-upload">
@@ -1450,6 +1455,23 @@ window.addEventListener('DOMContentLoaded', function(){
   loadMusic();
   // 页面加载时渲染已保存的图片缩略图（如果有）
   try{ renderPhotoGrid(); }catch(e){}
+  // 绑定显式保存按钮
+  try{
+    var saveBtn = document.getElementById('save-btn');
+    var statusEl = document.getElementById('save-status');
+    function setStatus(s){ if(statusEl) statusEl.textContent = s; }
+    saveBtn && saveBtn.addEventListener('click', function(){
+      setStatus('保存中...');
+      // 先保存本地
+      try{ saveContent(); }catch(e){ console.log('local save error', e); }
+      // 若启用了云则等待云保存完成
+      if(state.cloudEnabled && state.docId){
+        saveToCloud(state.docId).then(function(){ setStatus('已保存到云'); setTimeout(function(){ setStatus('已保存'); },800); }).catch(function(err){ console.log('saveToCloud err', err); setStatus('云保存失败'); setTimeout(function(){ setStatus('已保存（本地）'); },1200); });
+      } else {
+        setStatus('已保存（本地）');
+      }
+    });
+  }catch(e){console.log('bind save button failed', e)}
 });
 </script>
 
