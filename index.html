@@ -692,6 +692,11 @@ body{
   cursor:pointer;padding:8px 20px;
 }
 </style>
+<!-- Firebase (compat) SDKs for simple cloud sync. Fill firebaseConfig below. -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -808,39 +813,52 @@ body{
 </div>
 
 <script>
+/* ===== 状态 ===== */
 var state = {
-  photos: [],
+  photos: [], // 存储 local dataURL 或 cloud URL
+  photosCloud: [], // 存储已上传到 storage 的 download URLs
   currentPage: 0,
   rotateTimer: null,
   isViewing: false,
-  bgSet: false
+  bgSet: false,
+  docId: null,
+  cloudEnabled: false,
+  musicURL: null,
+  musicName: null
 };
 
 // ===== 本地存储 =====
 var SK = 'catLetter_';
+// 保存到 localStorage，然后尝试同步到云（若启用）
 function saveContent(){
   try{
     localStorage.setItem(SK+'env', document.querySelector('.envelope-text').innerText);
     localStorage.setItem(SK+'title', document.getElementById('letter-title').innerText);
     localStorage.setItem(SK+'body', document.getElementById('letter-body').innerHTML);
-    // 保存已添加的图片（Data URL 数组）
     try{ localStorage.setItem(SK+'photos', JSON.stringify(state.photos)); }catch(e){}
+    try{ localStorage.setItem(SK+'music', state.musicURL || ''); localStorage.setItem(SK+'musicName', state.musicName || ''); }catch(e){}
   }catch(e){}
+  if(state.cloudEnabled && state.docId){
+    saveToCloud(state.docId).catch(function(err){ console.log('Cloud save failed', err); });
+  }
 }
+
+// 先从本地恢复，再尝试从云加载并覆盖（云优先）
 function loadContent(){
   try{
     var e=localStorage.getItem(SK+'env'); if(e) document.querySelector('.envelope-text').innerText=e;
     var t=localStorage.getItem(SK+'title'); if(t) document.getElementById('letter-title').innerText=t;
     var b=localStorage.getItem(SK+'body'); if(b) document.getElementById('letter-body').innerHTML=b;
-    // 恢复已保存的图片
     try{
       var p = localStorage.getItem(SK+'photos');
-      if(p){
-        var arr = JSON.parse(p);
-        if(Array.isArray(arr)) state.photos = arr;
-      }
+      if(p){ var arr = JSON.parse(p); if(Array.isArray(arr)) state.photos = arr; }
     }catch(e){console.log('Load photos error', e)}
+    try{ state.musicURL = localStorage.getItem(SK+'music') || null; state.musicName = localStorage.getItem(SK+'musicName') || null; }catch(e){}
   }catch(e){}
+  // 若云可用且存在 docId，尝试从云加载并覆盖本地
+  if(state.cloudEnabled && state.docId){
+    loadFromCloud(state.docId).then(function(){ renderPhotoGrid(); }).catch(function(err){ console.log('Cloud load failed', err); });
+  }
 }
 document.querySelector('.envelope-text').addEventListener('input', saveContent);
 document.getElementById('letter-title').addEventListener('input', saveContent);
@@ -1249,6 +1267,8 @@ function handleMusic(file){
       // 保存到localStorage
       localStorage.setItem(SK+'music', e.target.result);
       localStorage.setItem(SK+'musicName', file.name);
+      state.musicURL = e.target.result;
+      state.musicName = file.name;
       // 创建音频
       if(bgAudio){ bgAudio.pause(); bgAudio = null; }
       bgAudio = new Audio(e.target.result);
@@ -1310,13 +1330,122 @@ function removeMusic(){
   needResumeOnGesture = false;
   localStorage.removeItem(SK+'music');
   localStorage.removeItem(SK+'musicName');
+  state.musicURL = null; state.musicName = null;
   document.getElementById('music-btn').classList.remove('show','playing');
   document.getElementById('musicCurrent').classList.remove('show');
   closeMusicUpload();
 }
 
+// ===== 云同步（Firebase）相关 =====
+function getDocIdFromURL(){
+  try{ var params = new URLSearchParams(location.search); return params.get('doc'); }catch(e){return null}
+}
+function generateId(len){ var chars='abcdefghijklmnopqrstuvwxyz0123456789'; var s=''; for(var i=0;i<len;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; }
+function ensureDocId(){
+  var id = getDocIdFromURL();
+  if(!id){ id = generateId(8); try{ history.replaceState(null,'', '?doc='+id); }catch(e){} alert('已为此信生成共享链接，请分享该链接给其他设备:\n' + location.href); }
+  state.docId = id;
+}
+
+function initFirebase(){
+  ensureDocId();
+  // 填写你的 firebase 配置
+  var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "",
+    appId: ""
+  };
+  // 如果没有替换配置，则跳过云功能（仅本地存储）
+  if(!firebaseConfig.apiKey || firebaseConfig.apiKey === 'YOUR_API_KEY'){
+    console.log('Firebase 未配置，云同步已禁用');
+    state.cloudEnabled = false;
+    return;
+  }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    state.cloudEnabled = true;
+    firebase.auth().signInAnonymously().catch(function(err){ console.log('匿名登录失败', err); });
+  }catch(e){ console.log('Firebase init error', e); state.cloudEnabled = false; }
+}
+
+function uploadDataURLToStorage(dataURL, path){
+  return fetch(dataURL).then(function(res){ return res.blob(); }).then(function(blob){
+    var ref = firebase.storage().ref().child(path);
+    return ref.put(blob).then(function(){ return ref.getDownloadURL(); });
+  });
+}
+
+function saveToCloud(docId){
+  if(!state.cloudEnabled) return Promise.resolve();
+  var db = firebase.firestore();
+  var storageBase = 'letters/' + docId + '/';
+
+  // 上传图片（将 data: URL 上传为文件），并收集最终的 URL 列表
+  var uploadPromises = state.photos.map(function(p, idx){
+    if(typeof p === 'string' && p.indexOf('data:') === 0){
+      return uploadDataURLToStorage(p, storageBase + 'photos/photo_' + idx + '.jpg');
+    } else {
+      return Promise.resolve(p);
+    }
+  });
+
+  // 音乐也可能是 data URL
+  var musicPromise = Promise.resolve(null);
+  if(state.musicURL && state.musicURL.indexOf && state.musicURL.indexOf('data:') === 0){
+    musicPromise = uploadDataURLToStorage(state.musicURL, storageBase + 'music/music.mp3');
+  } else if(state.musicURL){
+    musicPromise = Promise.resolve(state.musicURL);
+  }
+
+  return Promise.all([Promise.all(uploadPromises), musicPromise]).then(function(results){
+    var photosUrls = results[0];
+    var musicUrl = results[1];
+    var doc = {
+      env: document.querySelector('.envelope-text').innerText || '',
+      title: document.getElementById('letter-title').innerText || '',
+      body: document.getElementById('letter-body').innerHTML || '',
+      photos: photosUrls,
+      musicURL: musicUrl || '',
+      musicName: state.musicName || '',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    return db.collection('letters').doc(docId).set(doc, {merge:true}).then(function(){
+      console.log('Saved to cloud');
+      // 更新本地引用为 cloud URL（避免重复上传）
+      state.photos = photosUrls;
+      if(musicUrl){ state.musicURL = musicUrl; localStorage.setItem(SK+'music', musicUrl); }
+      localStorage.setItem(SK+'photos', JSON.stringify(state.photos));
+    });
+  });
+}
+
+function loadFromCloud(docId){
+  if(!state.cloudEnabled) return Promise.reject('cloud disabled');
+  var db = firebase.firestore();
+  return db.collection('letters').doc(docId).get().then(function(snapshot){
+    if(!snapshot.exists) return Promise.resolve();
+    var d = snapshot.data() || {};
+    if(d.env) document.querySelector('.envelope-text').innerText = d.env;
+    if(d.title) document.getElementById('letter-title').innerText = d.title;
+    if(d.body) document.getElementById('letter-body').innerHTML = d.body;
+    if(Array.isArray(d.photos)){
+      state.photos = d.photos;
+      try{ localStorage.setItem(SK+'photos', JSON.stringify(state.photos)); }catch(e){}
+    }
+    if(d.musicURL){ state.musicURL = d.musicURL; state.musicName = d.musicName || ''; try{ localStorage.setItem(SK+'music', d.musicURL); localStorage.setItem(SK+'musicName', state.musicName); }catch(e){} }
+    // 如果有音乐 URL，初始化 bgAudio
+    if(state.musicURL){ if(bgAudio){ bgAudio.pause(); bgAudio=null; } bgAudio = new Audio(state.musicURL); bgAudio.loop=true; bgAudio.volume=0.5; document.getElementById('music-btn').classList.add('show'); if(state.musicName) { document.getElementById('musicName').textContent = '🎵 ' + state.musicName; document.getElementById('musicCurrent').classList.add('show'); } }
+    return Promise.resolve();
+  });
+}
+
 // 页面加载时恢复音乐
 window.addEventListener('DOMContentLoaded', function(){
+  // 初始化云（若配置了 firebaseConfig 会启用云同步）
+  try{ initFirebase(); }catch(e){ console.log('initFirebase error', e); }
   loadContent();
   loadMusic();
   // 页面加载时渲染已保存的图片缩略图（如果有）
