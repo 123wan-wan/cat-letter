@@ -441,6 +441,13 @@ body{
   position:relative;z-index:1;
   min-height:160px;
 }
+#letter-body img{
+  max-width:100%;
+  display:block;
+  margin:18px auto;
+  border-radius:12px;
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
 #letter-body:focus{background:rgba(232,197,168,.1);border-radius:4px;padding:4px}
 
 .close-btn{
@@ -752,7 +759,7 @@ body{
       <div id="letter-title" contenteditable="true">亲爱的</div>
       <div style="margin-top:8px">
         <span style="font-size:13px;color:#c8506e;cursor:pointer;margin-right:10px;" onclick="openMusicUpload()">🎶 添加背景音乐</span>
-        <span style="font-size:13px;color:#c8506e;cursor:pointer" onclick="startUpload()">📷 添加照片</span>
+        <span style="font-size:13px;color:#c8506e;cursor:pointer" onclick="startUpload()">📷 插入照片</span>
       </div>
     </div>
     <div class="letter-content">
@@ -934,11 +941,7 @@ function standEnvelope(){
 }
 
 function openLetter(){
-  if(state.photos.length > 0){
-    burstAndShowLetter();
-  } else {
-    startUpload();
-  }
+  showLetter();
 }
 
 // 图片爆发
@@ -1054,13 +1057,22 @@ function removePhoto(i){
   renderPhotoGrid();
 }
 
+function insertPhotosIntoLetter(){
+  var body = document.getElementById('letter-body');
+  state.photos.forEach(function(src){
+    body.innerHTML += '<div class="letter-photo-wrap"><img src="'+src+'" alt="照片"></div>';
+  });
+}
+
 function confirmPhotos(){
   document.getElementById('uploadPhotos').classList.remove('show');
-  if(state.photos.length === 0){
-    showLetter();
-  } else {
-    burstAndShowLetter();
+  if(state.photos.length > 0){
+    insertPhotosIntoLetter();
+    state.photos = [];
+    saveContent();
+    renderPhotoGrid();
   }
+  showLetter();
 }
 
 function skipUpload(){
@@ -1120,34 +1132,9 @@ function showLetter(){
   // 逐字显示
   var body = document.getElementById('letter-body');
   var text = body.innerHTML;
-  body.innerHTML = '';
-  body.classList.add('typing');
-
-  var chars = [];
-  var temp = document.createElement('div');
-  temp.innerHTML = text;
-  var nodes = temp.childNodes;
-  nodes.forEach(function(node){
-    if(node.nodeType === 3){
-      for(var i=0;i<node.textContent.length;i++) chars.push(node.textContent[i]);
-    } else {
-      chars.push(node.outerHTML || '');
-    }
-  });
-
-  var idx = 0;
-  function typeNext(){
-    if(idx >= chars.length){ body.classList.remove('typing'); return; }
-    var span = document.createElement('span');
-    span.className = 'char';
-    span.style.animationDelay = '0s';
-    if(chars[idx].startsWith('<')){ span.innerHTML = chars[idx]; }
-    else { span.textContent = chars[idx]; }
-    body.appendChild(span);
-    idx++;
-    setTimeout(typeNext, 90);
-  }
-  typeNext();
+  // 直接显示已有正文，避免长文本或图片时看起来内容“消失”
+  body.classList.remove('typing');
+  body.innerHTML = text;
 }
 
 // 显示指定页的风铃
